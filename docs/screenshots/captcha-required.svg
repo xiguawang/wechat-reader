@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Captcha required screenshot</title>
+  <desc id="desc">Terminal-style screenshot showing captcha required output from the OpenClaw wrapper.</desc>
+  <rect width="1200" height="760" fill="#111827"/>
+  <rect x="24" y="24" width="1152" height="712" rx="18" fill="#0b1220" stroke="#334155" stroke-width="2"/>
+  <rect x="24" y="24" width="1152" height="56" rx="18" fill="#172033"/>
+  <circle cx="58" cy="52" r="9" fill="#fb7185"/>
+  <circle cx="88" cy="52" r="9" fill="#fbbf24"/>
+  <circle cx="118" cy="52" r="9" fill="#34d399"/>
+  <text x="600" y="58" text-anchor="middle" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="22">mp-article-bridge-openclaw</text>
+  <text fill="#e5e7eb" font-family="Menlo, Consolas, monospace" font-size="24" xml:space="preserve">
+    <tspan x="54" y="126">$ mp-article-bridge-openclaw read "&lt;wrapper-url&gt;" \</tspan>
+    <tspan x="54" y="162">    --strategy attach --cdp-url http://127.0.0.1:9222 \</tspan>
+    <tspan x="54" y="198">    --wait-for-manual-verify 0</tspan>
+    <tspan x="54" y="250">{</tspan>
+    <tspan x="54" y="286">  "tool": "mp-article-bridge-openclaw",</tspan>
+    <tspan x="54" y="322">  "status": "captcha_required",</tspan>
+    <tspan x="54" y="358">  "next_action": "ask_user_to_verify",</tspan>
+    <tspan x="54" y="394">  "user_message": "Please complete WeChat verification",</tspan>
+    <tspan x="54" y="430">  "hint": "Complete verification in the browser, then retry."</tspan>
+    <tspan x="54" y="466">}</tspan>
+  </text>
+  <rect x="54" y="526" width="512" height="76" rx="12" fill="#3f1d2e" stroke="#be123c"/>
+  <text x="80" y="572" fill="#fecdd3" font-family="Menlo, Consolas, monospace" font-size="24">
+    blocked path -> user verification required
+  </text>
+  <text x="54" y="700" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="20">
+    Representative blocked-state output used by agent runtimes to guide the user.
+  </text>
+</svg>

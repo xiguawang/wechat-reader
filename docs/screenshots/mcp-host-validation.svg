@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">MCP host validation screenshot</title>
+  <desc id="desc">Terminal-style screenshot showing real Codex-host validation of the mp-article-bridge MCP server.</desc>
+  <rect width="1200" height="760" fill="#020617"/>
+  <rect x="24" y="24" width="1152" height="712" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+  <rect x="24" y="24" width="1152" height="56" rx="18" fill="#172554"/>
+  <circle cx="58" cy="52" r="9" fill="#fb7185"/>
+  <circle cx="88" cy="52" r="9" fill="#fbbf24"/>
+  <circle cx="118" cy="52" r="9" fill="#34d399"/>
+  <text x="600" y="58" text-anchor="middle" fill="#dbeafe" font-family="Menlo, Consolas, monospace" font-size="22">Codex host MCP validation</text>
+  <text fill="#e5e7eb" font-family="Menlo, Consolas, monospace" font-size="24" xml:space="preserve">
+    <tspan x="54" y="126">$ codex exec --cd /Users/wangjiaying/Projects/mp-article-bridge \</tspan>
+    <tspan x="54" y="162">    "Use the wechat_setup MCP tool once and summarize the result."</tspan>
+    <tspan x="54" y="226">configured stdio server:</tspan>
+    <tspan x="54" y="262">  python3 -m wechat_reader.mcp_server</tspan>
+    <tspan x="54" y="326">host result:</tspan>
+    <tspan x="54" y="362">  {"tool_used":"wechat_setup","setup_present":true,</tspan>
+    <tspan x="54" y="398">   "reachable_cdp_count":0}</tspan>
+  </text>
+  <rect x="54" y="456" width="782" height="110" rx="12" fill="#10243f" stroke="#2563eb"/>
+  <text x="80" y="504" fill="#bfdbfe" font-family="Menlo, Consolas, monospace" font-size="24">
+    real host path: Codex -> configured stdio MCP server -> wechat_setup
+  </text>
+  <text x="80" y="540" fill="#93c5fd" font-family="Menlo, Consolas, monospace" font-size="22">
+    validation goal: confirm the MCP server is reachable beyond local stdin-only tests
+  </text>
+  <text x="54" y="700" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="20">
+    Snapshot derived from the real Codex-host validation completed on 2026-03-02.
+  </text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Successful mp-article-bridge read screenshot</title>
+  <desc id="desc">Terminal-style screenshot showing a successful verified article read.</desc>
+  <rect width="1200" height="760" fill="#0f172a"/>
+  <rect x="24" y="24" width="1152" height="712" rx="18" fill="#111827" stroke="#334155" stroke-width="2"/>
+  <rect x="24" y="24" width="1152" height="56" rx="18" fill="#1f2937"/>
+  <circle cx="58" cy="52" r="9" fill="#fb7185"/>
+  <circle cx="88" cy="52" r="9" fill="#fbbf24"/>
+  <circle cx="118" cy="52" r="9" fill="#34d399"/>
+  <text x="600" y="58" text-anchor="middle" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="22">mp-article-bridge read</text>
+  <text fill="#e5e7eb" font-family="Menlo, Consolas, monospace" font-size="24" xml:space="preserve">
+    <tspan x="54" y="126">$ mp-article-bridge read "&lt;wrapper-url&gt;" \</tspan>
+    <tspan x="54" y="162">    --strategy attach --cdp-url http://127.0.0.1:9222 --json</tspan>
+    <tspan x="54" y="214">{</tspan>
+    <tspan x="54" y="250">  "status": "ok",</tspan>
+    <tspan x="54" y="286">  "url": "https://mp.weixin.qq.com/s?...",</tspan>
+    <tspan x="54" y="322">  "title": "Validated article read",</tspan>
+    <tspan x="54" y="358">  "author": "droidHZ",</tspan>
+    <tspan x="54" y="394">  "publish_time": "2025-12-04 07:53",</tspan>
+    <tspan x="54" y="430">  "metadata": {</tspan>
+    <tspan x="54" y="466">    "url_unwrapped": true,</tspan>
+    <tspan x="54" y="502">    "runtime_strategy": "attach",</tspan>
+    <tspan x="54" y="538">    "reused_existing_tab": true,</tspan>
+    <tspan x="54" y="574">    "navigation_performed": false</tspan>
+    <tspan x="54" y="610">  }</tspan>
+    <tspan x="54" y="646">}</tspan>
+  </text>
+  <text x="54" y="700" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="20">
+    Representative output from a locally validated read after manual verification.
+  </text>
+</svg>

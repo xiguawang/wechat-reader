@@ -33,6 +33,22 @@
 - 自动将 `wappoc_appmsgcaptcha?...target_url=...` 解包为真实文章 URL
 - 成功保存 markdown 输出
 
+## 截图
+
+下面三张图对应当前最重要的三条路径：
+
+### 验证完成后的成功读取
+
+![Successful read screenshot](docs/screenshots/read-ok.svg)
+
+### 需要用户先完成验证的阻塞状态
+
+![Captcha required screenshot](docs/screenshots/captcha-required.svg)
+
+### 真实 MCP host 接入验证
+
+![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
+
 ## 核心思路
 
 ### 优先复用已有浏览器
@@ -170,12 +186,11 @@ mp-article-bridge-mcp
 - 单元测试通过
 - CI 已配置
 - MCP 基础接入已完成
+- 真实 MCP host 验证已完成
 
 仍建议继续补的内容：
 
-- README 截图
 - 干净环境安装验证
-- 真实 MCP 客户端端到端验证
 
 ## 许可证
 

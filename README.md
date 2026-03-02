@@ -59,6 +59,28 @@ Current value:
 - successful real-world article extraction after user verification
 - reproducible markdown export from the verified article page
 
+## Screenshots
+
+Representative terminal snapshots from local validation:
+
+### Successful Read After Verification
+
+![Successful read screenshot](docs/screenshots/read-ok.svg)
+
+This shows the post-verification `status = ok` path, including wrapper URL unwrapping and tab reuse.
+
+### Blocked Page Requiring Manual Verification
+
+![Captcha required screenshot](docs/screenshots/captcha-required.svg)
+
+This shows the OpenClaw-oriented blocked path with `captcha_required` and `next_action = ask_user_to_verify`.
+
+### Real MCP Host Validation
+
+![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
+
+This shows the real Codex-host MCP validation path used to confirm `wechat_setup` can be reached through a configured stdio MCP server.
+
 ## Core Ideas
 
 ### 1. Prefer attach over fresh automation
@@ -469,12 +491,11 @@ Current state:
 - GitHub Actions CI: present
 - local unit tests and compile check: passing
 - real local verification and markdown export: completed
+- real MCP host validation: completed
 
 Still recommended before broad promotion:
 
-- add screenshots for `ok`, `captcha_required`, and one MCP or CLI workflow
 - run a clean-machine install check from `pipx` or a fresh virtualenv
-- validate one real external MCP host configuration end to end
 
 ## Development
 
