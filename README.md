@@ -19,6 +19,13 @@ Python 3.11+ is required.
 ```bash
 git clone https://github.com/xiguawang/wechat-reader.git
 cd wechat-reader
+uv sync
+uv run playwright install chromium
+```
+
+If you do not use `uv`, the fallback is:
+
+```bash
 pip install -e .
 python -m playwright install chromium
 ```

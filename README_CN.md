@@ -19,6 +19,13 @@
 ```bash
 git clone https://github.com/xiguawang/wechat-reader.git
 cd wechat-reader
+uv sync
+uv run playwright install chromium
+```
+
+如果你不使用 `uv`，也可以退回到：
+
+```bash
 pip install -e .
 python -m playwright install chromium
 ```
