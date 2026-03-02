@@ -369,6 +369,41 @@ Currently exposed tools:
 
 The server implements the minimal MCP flow for `initialize`, `tools/list`, `tools/call`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
 
+### Example MCP Client Config
+
+For MCP clients that launch stdio servers from a JSON config, the shape is typically:
+
+```json
+{
+  "mcpServers": {
+    "mp-article-bridge": {
+      "command": "mp-article-bridge-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+If you are running directly from the source tree instead of an installed package:
+
+```json
+{
+  "mcpServers": {
+    "mp-article-bridge": {
+      "command": "python3",
+      "args": ["-m", "wechat_reader.mcp_server"],
+      "cwd": "/Users/wangjiaying/Projects/mp-article-bridge"
+    }
+  }
+}
+```
+
+Recommended first checks after connecting:
+
+1. call `wechat_setup`
+2. call `wechat_list_tabs`
+3. call `wechat_read_article` with a known WeChat article URL or wrapper URL
+
 ## OpenClaw / Agent Usage
 
 The intended agent flow is:
