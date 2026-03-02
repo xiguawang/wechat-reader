@@ -24,7 +24,8 @@ class McpServerTests(unittest.TestCase):
         response = handle_message({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
 
         assert response is not None
-        tool_names = [tool["name"] for tool in response["result"]["tools"]]
+        tools = response["result"]["tools"]
+        tool_names = [tool["name"] for tool in tools]
         self.assertEqual(
             tool_names,
             [
@@ -36,6 +37,9 @@ class McpServerTests(unittest.TestCase):
                 "wechat_setup",
             ],
         )
+        self.assertIn("annotations", tools[0])
+        self.assertIn("outputSchema", tools[0])
+        self.assertEqual(tools[2]["annotations"]["readOnlyHint"], True)
 
     def test_wechat_read_article_returns_structured_content(self) -> None:
         result = ArticleResult(
@@ -64,6 +68,22 @@ class McpServerTests(unittest.TestCase):
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["title"], "Example")
         self.assertFalse(response["result"]["isError"])
+
+    def test_wechat_read_article_returns_tool_error_when_url_missing(self) -> None:
+        response = handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 31,
+                "method": "tools/call",
+                "params": {"name": "wechat_read_article", "arguments": {}},
+            }
+        )
+
+        assert response is not None
+        self.assertTrue(response["result"]["isError"])
+        payload = response["result"]["structuredContent"]
+        self.assertEqual(payload["error"]["code"], "missing_argument")
+        self.assertEqual(payload["error"]["tool"], "wechat_read_article")
 
     def test_wechat_read_current_tab_uses_selected_tab_url(self) -> None:
         tab = BrowserTab(id="tab-1", title="Example", url="https://mp.weixin.qq.com/s?...")
@@ -129,6 +149,22 @@ class McpServerTests(unittest.TestCase):
 
         assert response is not None
         self.assertEqual(response["error"]["code"], -32601)
+
+    def test_unknown_tool_returns_tool_error_payload(self) -> None:
+        response = handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "method": "tools/call",
+                "params": {"name": "unknown_tool", "arguments": {}},
+            }
+        )
+
+        assert response is not None
+        self.assertTrue(response["result"]["isError"])
+        payload = response["result"]["structuredContent"]
+        self.assertEqual(payload["error"]["code"], "unknown_tool")
+        self.assertEqual(payload["error"]["tool"], "unknown_tool")
 
 
 if __name__ == "__main__":
