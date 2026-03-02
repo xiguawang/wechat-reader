@@ -1,0 +1,39 @@
+# wechat-reader
+
+wechat-reader is a local WeChat article reader for AI agents.
+
+It provides three entrypoints:
+
+- `wechat-reader`: CLI for `setup`, `tabs`, `open`, and `read`
+- `wechat-reader-mcp`: stdio MCP server exposing WeChat article tools and resources
+- `wechat_reader`: Python package for direct integration
+
+Primary use case:
+
+- reuse an existing browser session or a managed visible bridge browser
+- detect page state such as `ok`, `captcha_required`, `rate_limited`, or `browser_not_ready`
+- extract article content from the live DOM when the page is readable
+- let an agent guide the user through manual verification when WeChat blocks the page
+
+Key MCP tools:
+
+- `wechat_read_article`
+- `wechat_open_article`
+- `wechat_list_tabs`
+- `wechat_read_current_tab`
+- `wechat_get_status`
+- `wechat_setup`
+
+Key CLI commands:
+
+- `wechat-reader setup`
+- `wechat-reader tabs --wechat-only --json`
+- `wechat-reader open "<url>" --strategy launch --json`
+- `wechat-reader read "<url>" --strategy auto --json`
+
+Relevant documents:
+
+- `README.md`
+- `README_CN.md`
+- `examples/openclaw/README.md`
+- `PUBLIC_RELEASE_CHECKLIST.md`

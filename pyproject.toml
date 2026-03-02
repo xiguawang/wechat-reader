@@ -9,12 +9,39 @@ description = "CLI, MCP server, and Python API for reading WeChat articles from 
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+keywords = [
+  "wechat",
+  "wechat-reader",
+  "wechat-article",
+  "mcp",
+  "model-context-protocol",
+  "playwright",
+  "ai-agent",
+  "browser-automation",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Internet :: WWW/HTTP :: Browsers",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
 authors = [
   { name = "wangjiaying" }
 ]
 dependencies = [
   "playwright>=1.50.0"
 ]
+
+[project.urls]
+Homepage = "https://github.com/xiguawang/mp-article-bridge"
+Repository = "https://github.com/xiguawang/mp-article-bridge"
+Issues = "https://github.com/xiguawang/mp-article-bridge/issues"
+Documentation = "https://github.com/xiguawang/mp-article-bridge#readme"
 
 [project.scripts]
 wechat-reader = "wechat_reader.cli:main"
