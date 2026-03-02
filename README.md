@@ -33,7 +33,7 @@ The practical goal is:
 
 ## Current Project Status
 
-This repository is in early prototype stage.
+This repository is a working local bridge with the core browser, CLI, Python API, OpenClaw, and MCP paths implemented.
 
 Currently implemented and locally validated:
 
@@ -112,7 +112,7 @@ Chrome is recommended for real-world use. Chromium / Playwright fallback is kept
 ### 1. Diagnose the environment
 
 ```bash
-python -m wechat_reader setup
+mp-article-bridge setup
 ```
 
 Typical output shows:
@@ -125,7 +125,7 @@ Typical output shows:
 ### 2. Launch a managed browser bridge
 
 ```bash
-python -m wechat_reader open "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
   --channel chrome \
   --json
@@ -140,7 +140,7 @@ This will:
 ### 3. Wait for manual verification and retry reading
 
 ```bash
-python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
   --channel chrome \
   --wait-for-manual-verify 90 \
@@ -154,7 +154,7 @@ If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptc
 ### 4. Attach to an existing browser
 
 ```bash
-python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
   --strategy attach \
   --cdp-url http://127.0.0.1:9222 \
   --json
@@ -163,7 +163,7 @@ python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
 ### 5. List current WeChat tabs
 
 ```bash
-python -m wechat_reader tabs --wechat-only --json
+mp-article-bridge tabs --wechat-only --json
 ```
 
 ## CLI
@@ -173,8 +173,8 @@ python -m wechat_reader tabs --wechat-only --json
 Diagnose prerequisites and print recommended launch guidance.
 
 ```bash
-python -m wechat_reader setup
-python -m wechat_reader setup --json
+mp-article-bridge setup
+mp-article-bridge setup --json
 ```
 
 ### `tabs`
@@ -182,8 +182,8 @@ python -m wechat_reader setup --json
 List attachable tabs from a browser exposing CDP.
 
 ```bash
-python -m wechat_reader tabs --wechat-only
-python -m wechat_reader tabs --wechat-only --json
+mp-article-bridge tabs --wechat-only
+mp-article-bridge tabs --wechat-only --json
 ```
 
 ### `open`
@@ -191,7 +191,7 @@ python -m wechat_reader tabs --wechat-only --json
 Open a URL in a managed or attached browser and report page status without requiring full article extraction.
 
 ```bash
-python -m wechat_reader open "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
   --channel chrome \
   --json
@@ -202,7 +202,7 @@ python -m wechat_reader open "https://mp.weixin.qq.com/s?..." \
 High-level command: reuse an existing matching tab if possible, otherwise navigate according to strategy, then attempt extraction.
 
 ```bash
-python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
   --strategy auto \
   --timeout 30 \
   --json
@@ -211,7 +211,7 @@ python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
 Save markdown on success:
 
 ```bash
-python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
+mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
   --output ./articles
 ```
 
@@ -451,6 +451,31 @@ The recommended mobile-friendly architecture is:
 - CDP attach may fail with local `EPERM` errors inside a sandbox even when the same Chrome session works outside the sandbox
 - when validating agent integrations, prefer running the actual attach/read command outside restrictive sandboxes before treating CDP failures as product bugs
 
+## Public Release Readiness
+
+Before making the repository public, the minimum release bar should be:
+
+- clear English and Chinese README coverage
+- a committed open-source license file
+- passing CI plus passing local tests
+- explicit documentation of limitations and verification-dependent flows
+- at least one real-world validated read path from verification to extraction
+
+Current state:
+
+- English README: present
+- Chinese README: present
+- LICENSE file: present
+- GitHub Actions CI: present
+- local unit tests and compile check: passing
+- real local verification and markdown export: completed
+
+Still recommended before broad promotion:
+
+- add screenshots for `ok`, `captcha_required`, and one MCP or CLI workflow
+- run a clean-machine install check from `pipx` or a fresh virtualenv
+- validate one real external MCP host configuration end to end
+
 ## Development
 
 Run tests:
@@ -462,15 +487,15 @@ python -m unittest discover -s tests -v
 Basic CLI check:
 
 ```bash
-python -m wechat_reader setup
-python -m wechat_reader read --help
+mp-article-bridge setup
+mp-article-bridge read --help
 ```
 
 ## Roadmap
 
 - improve managed bridge discovery and reuse
 - add clearer OpenClaw integration examples
-- expose MCP server support
+- add screenshots and public-facing walkthroughs
 - improve recovery flow after manual verification succeeds
 - add better troubleshooting docs and platform-specific setup guidance
 
