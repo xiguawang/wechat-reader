@@ -9,3 +9,5 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+PROMPT.md
+PUBLIC_RELEASE_CHECKLIST.md
