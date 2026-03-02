@@ -17,6 +17,8 @@ Python 3.11+ is required.
 ### Install
 
 ```bash
+git clone https://github.com/xiguawang/wechat-reader.git
+cd wechat-reader
 pip install -e .
 python -m playwright install chromium
 ```
