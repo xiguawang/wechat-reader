@@ -367,7 +367,16 @@ Currently exposed tools:
 - `wechat_get_status`
 - `wechat_setup`
 
-The server implements the minimal MCP flow for `initialize`, `tools/list`, `tools/call`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
+Currently exposed resources:
+
+- `mp-article-bridge://setup`
+- `mp-article-bridge://tabs`
+- project `README.md`
+- OpenClaw integration `README.md`
+
+The server implements the MCP flow for `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
+
+Tool results such as `wechat_setup` and `wechat_list_tabs` also include `resource_link` items so MCP clients can jump directly from a tool call to the related diagnostic resource.
 
 ### Example MCP Client Config
 

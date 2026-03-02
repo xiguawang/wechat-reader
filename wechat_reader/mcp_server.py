@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import sys
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from dataclasses import asdict
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from .browser_bridge import list_wechat_tabs_sync, open_article_sync, read_article_sync
 from .models import ArticleResult, BrowserTab, PageStatus
@@ -16,6 +18,8 @@ from .setup import run_setup_diagnostics
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2025-06-18"
 SERVER_NAME = "mp-article-bridge"
+TOOLS_PAGE_SIZE = 50
+RESOURCES_PAGE_SIZE = 50
 
 
 def _server_version() -> str:
@@ -36,10 +40,18 @@ def _jsonrpc_error(message_id: Any, code: int, message: str, *, data: dict[str, 
     return {"jsonrpc": JSONRPC_VERSION, "id": message_id, "error": payload}
 
 
-def _text_tool_result(payload: dict[str, Any], *, is_error: bool = False) -> dict[str, Any]:
+def _text_tool_result(
+    payload: dict[str, Any],
+    *,
+    is_error: bool = False,
+    resource_links: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     text = json.dumps(payload, ensure_ascii=False, indent=2)
+    content: list[dict[str, Any]] = [{"type": "text", "text": text}]
+    if resource_links:
+        content.extend(resource_links)
     return {
-        "content": [{"type": "text", "text": text}],
+        "content": content,
         "structuredContent": payload,
         "isError": is_error,
     }
@@ -61,6 +73,135 @@ def _article_result_payload(result: ArticleResult) -> dict[str, Any]:
 
 def _tabs_payload(tabs: list[BrowserTab]) -> dict[str, Any]:
     return {"tabs": [tab.to_dict() for tab in tabs]}
+
+
+def _encode_cursor(index: int) -> str:
+    return urlsafe_b64encode(str(index).encode("utf-8")).decode("ascii")
+
+
+def _decode_cursor(cursor: str) -> int:
+    try:
+        return int(urlsafe_b64decode(cursor.encode("ascii")).decode("utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError("Invalid cursor") from exc
+
+
+def _paginate(items: list[dict[str, Any]], cursor: str | None, page_size: int) -> dict[str, Any]:
+    start = 0
+    if cursor:
+        start = _decode_cursor(cursor)
+    if start < 0 or start > len(items):
+        raise ValueError("Invalid cursor")
+    page = items[start : start + page_size]
+    result: dict[str, Any] = {}
+    next_index = start + page_size
+    if next_index < len(items):
+        result["nextCursor"] = _encode_cursor(next_index)
+    return result, page
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _resource_annotations(*, audience: list[str], priority: float) -> dict[str, Any]:
+    return {"audience": audience, "priority": priority}
+
+
+def _resource_definitions() -> list[dict[str, Any]]:
+    repo_root = _repo_root()
+    return [
+        {
+            "uri": "mp-article-bridge://setup",
+            "name": "setup",
+            "title": "Bridge Setup Diagnostics",
+            "description": "Current local browser bridge diagnostics as JSON.",
+            "mimeType": "application/json",
+            "annotations": _resource_annotations(audience=["assistant"], priority=0.95),
+        },
+        {
+            "uri": "mp-article-bridge://tabs",
+            "name": "tabs",
+            "title": "Current WeChat Tabs",
+            "description": "Current attachable WeChat browser tabs as JSON.",
+            "mimeType": "application/json",
+            "annotations": _resource_annotations(audience=["assistant"], priority=0.85),
+        },
+        {
+            "uri": (repo_root / "README.md").as_uri(),
+            "name": "README.md",
+            "title": "Project README",
+            "description": "Primary project documentation.",
+            "mimeType": "text/markdown",
+            "annotations": _resource_annotations(audience=["user", "assistant"], priority=0.8),
+        },
+        {
+            "uri": (repo_root / "examples" / "openclaw" / "README.md").as_uri(),
+            "name": "openclaw-readme",
+            "title": "OpenClaw Integration README",
+            "description": "Integration guidance for OpenClaw-style runtimes.",
+            "mimeType": "text/markdown",
+            "annotations": _resource_annotations(audience=["assistant"], priority=0.7),
+        },
+    ]
+
+
+def _resource_link(uri: str, *, name: str, description: str, mime_type: str) -> dict[str, Any]:
+    return {
+        "type": "resource_link",
+        "uri": uri,
+        "name": name,
+        "description": description,
+        "mimeType": mime_type,
+        "annotations": _resource_annotations(audience=["assistant"], priority=0.8),
+    }
+
+
+def _resource_contents(uri: str) -> dict[str, Any]:
+    parsed = urlsplit(uri)
+    if uri == "mp-article-bridge://setup":
+        return {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": "application/json",
+                    "text": json.dumps({"setup": run_setup_diagnostics()}, ensure_ascii=False, indent=2),
+                }
+            ]
+        }
+    if parsed.scheme == "mp-article-bridge" and parsed.netloc == "tabs":
+        query = parse_qs(parsed.query)
+        cdp_url = query.get("cdp_url", [None])[0]
+        wechat_only_raw = query.get("wechat_only", ["true"])[0]
+        wechat_only = str(wechat_only_raw).lower() != "false"
+        return {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": "application/json",
+                    "text": json.dumps(
+                        _tabs_payload(list_wechat_tabs_sync(cdp_url, wechat_only=wechat_only)),
+                        ensure_ascii=False,
+                        indent=2,
+                    ),
+                }
+            ]
+        }
+
+    known_file_uris = {item["uri"] for item in _resource_definitions() if item["uri"].startswith("file://")}
+    if uri in known_file_uris:
+        path = Path(urlsplit(uri).path)
+        return {
+            "contents": [
+                {
+                    "uri": uri,
+                    "mimeType": "text/markdown",
+                    "text": path.read_text(encoding="utf-8"),
+                }
+            ]
+        }
+
+    raise FileNotFoundError(uri)
 
 
 def _coerce_browser_kwargs(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -308,7 +449,17 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             arguments.get("cdp_url"),
             wechat_only=bool(arguments.get("wechat_only", True)),
         )
-        return _text_tool_result(_tabs_payload(tabs))
+        return _text_tool_result(
+            _tabs_payload(tabs),
+            resource_links=[
+                _resource_link(
+                    "mp-article-bridge://tabs",
+                    name="tabs",
+                    description="Current WeChat tabs resource",
+                    mime_type="application/json",
+                )
+            ],
+        )
 
     if name == "wechat_read_current_tab":
         tab = _resolve_current_tab(arguments)
@@ -342,7 +493,17 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return _text_tool_result(payload)
 
     if name == "wechat_setup":
-        return _text_tool_result({"setup": run_setup_diagnostics()})
+        return _text_tool_result(
+            {"setup": run_setup_diagnostics()},
+            resource_links=[
+                _resource_link(
+                    "mp-article-bridge://setup",
+                    name="setup",
+                    description="Bridge setup diagnostics resource",
+                    mime_type="application/json",
+                )
+            ],
+        )
 
     return _text_tool_result(
         _tool_error_payload(f"Unknown tool: {name}", code="unknown_tool", tool_name=name),
@@ -367,7 +528,10 @@ def handle_message(message: dict[str, Any]) -> dict[str, Any] | None:
             message_id,
             {
                 "protocolVersion": MCP_PROTOCOL_VERSION,
-                "capabilities": {"tools": {"listChanged": False}},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "resources": {"listChanged": False},
+                },
                 "serverInfo": {
                     "name": SERVER_NAME,
                     "title": "mp-article-bridge MCP Server",
@@ -384,7 +548,27 @@ def handle_message(message: dict[str, Any]) -> dict[str, Any] | None:
         return _jsonrpc_response(message_id, {})
 
     if method == "tools/list":
-        return _jsonrpc_response(message_id, {"tools": _tool_definitions()})
+        try:
+            pagination, page = _paginate(_tool_definitions(), params.get("cursor"), TOOLS_PAGE_SIZE)
+        except ValueError:
+            return _jsonrpc_error(message_id, -32602, "Invalid cursor")
+        return _jsonrpc_response(message_id, {"tools": page, **pagination})
+
+    if method == "resources/list":
+        try:
+            pagination, page = _paginate(_resource_definitions(), params.get("cursor"), RESOURCES_PAGE_SIZE)
+        except ValueError:
+            return _jsonrpc_error(message_id, -32602, "Invalid cursor")
+        return _jsonrpc_response(message_id, {"resources": page, **pagination})
+
+    if method == "resources/read":
+        uri = params.get("uri")
+        if not isinstance(uri, str) or not uri:
+            return _jsonrpc_error(message_id, -32602, "resources/read requires a uri")
+        try:
+            return _jsonrpc_response(message_id, _resource_contents(uri))
+        except FileNotFoundError:
+            return _jsonrpc_error(message_id, -32002, "Resource not found", data={"uri": uri})
 
     if method == "tools/call":
         tool_name = params.get("name")
