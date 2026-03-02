@@ -151,7 +151,7 @@ If you are running directly from the source tree instead of an installed package
     "wechat-reader": {
       "command": "python3",
       "args": ["-m", "wechat_reader.mcp_server"],
-      "cwd": "/Users/wangjiaying/Projects/mp-article-bridge"
+      "cwd": "/path/to/wechat-reader"
     }
   }
 }

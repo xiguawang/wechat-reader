@@ -9,7 +9,7 @@
   <circle cx="118" cy="52" r="9" fill="#34d399"/>
   <text x="600" y="58" text-anchor="middle" fill="#dbeafe" font-family="Menlo, Consolas, monospace" font-size="22">Codex host MCP validation</text>
   <text fill="#e5e7eb" font-family="Menlo, Consolas, monospace" font-size="24" xml:space="preserve">
-    <tspan x="54" y="126">$ codex exec --cd /Users/wangjiaying/Projects/mp-article-bridge \</tspan>
+    <tspan x="54" y="126">$ codex exec --cd /path/to/wechat-reader \</tspan>
     <tspan x="54" y="162">    "Use the wechat_setup MCP tool once and summarize the result."</tspan>
     <tspan x="54" y="226">configured stdio server:</tspan>
     <tspan x="54" y="262">  python3 -m wechat_reader.mcp_server</tspan>
