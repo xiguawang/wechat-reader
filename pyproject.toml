@@ -38,10 +38,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/xiguawang/mp-article-bridge"
-Repository = "https://github.com/xiguawang/mp-article-bridge"
-Issues = "https://github.com/xiguawang/mp-article-bridge/issues"
-Documentation = "https://github.com/xiguawang/mp-article-bridge#readme"
+Homepage = "https://github.com/xiguawang/wechat-reader"
+Repository = "https://github.com/xiguawang/wechat-reader"
+Issues = "https://github.com/xiguawang/wechat-reader/issues"
+Documentation = "https://github.com/xiguawang/wechat-reader#readme"
 
 [project.scripts]
 wechat-reader = "wechat_reader.cli:main"
