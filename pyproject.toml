@@ -19,6 +19,7 @@ dependencies = [
 [project.scripts]
 mp-article-bridge = "wechat_reader.cli:main"
 mp-article-bridge-openclaw = "wechat_reader.openclaw_tool:main"
+mp-article-bridge-mcp = "wechat_reader.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["wechat_reader*"]

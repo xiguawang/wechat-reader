@@ -42,6 +42,7 @@ Currently implemented and locally validated:
 - managed bridge profile under `~/.wechat-reader/profiles/default`
 - structured page status detection for WeChat pages
 - manual verification wait mode for blocked pages
+- stdio MCP server with tool-based access for agent runtimes
 
 Real-world validation so far:
 
@@ -348,6 +349,25 @@ result = read_article_sync(
 
 print(result.status, result.hint)
 ```
+
+## MCP Server
+
+A minimal stdio MCP server is included:
+
+```bash
+mp-article-bridge-mcp
+```
+
+Currently exposed tools:
+
+- `wechat_read_article`
+- `wechat_open_article`
+- `wechat_list_tabs`
+- `wechat_read_current_tab`
+- `wechat_get_status`
+- `wechat_setup`
+
+The server implements the minimal MCP flow for `initialize`, `tools/list`, `tools/call`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
 
 ## OpenClaw / Agent Usage
 
