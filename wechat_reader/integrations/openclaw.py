@@ -1,4 +1,4 @@
-"""OpenClaw-oriented wrappers for mp-article-bridge."""
+"""OpenClaw-oriented wrappers for wechat-reader."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def build_openclaw_response(result: ArticleResult) -> dict[str, Any]:
         user_message = result.hint or "The WeChat page loaded, but content is not ready yet."
     elif result.status == PageStatus.BROWSER_NOT_FOUND:
         next_action = "guide_browser_setup"
-        user_message = result.hint or "No attachable browser was found. Run `mp-article-bridge setup`."
+        user_message = result.hint or "No attachable browser was found. Run `wechat-reader setup`."
     elif result.status == PageStatus.BROWSER_NOT_READY:
         if "playwright is not installed" in hint_text:
             next_action = "install_dependencies"
@@ -54,11 +54,11 @@ def build_openclaw_response(result: ArticleResult) -> dict[str, Any]:
     elif result.status == PageStatus.NAVIGATION_FAILED:
         if "playwright is not installed" in hint_text:
             next_action = "install_dependencies"
-        elif "run: mp-article-bridge setup" in hint_text or "no browser executable found" in hint_text:
+        elif "run: wechat-reader setup" in hint_text or "no browser executable found" in hint_text:
             next_action = "guide_browser_setup"
 
     response: dict[str, Any] = {
-        "tool": "mp-article-bridge",
+        "tool": "wechat-reader",
         "status": result.status.value,
         "next_action": next_action,
         "user_message": user_message,

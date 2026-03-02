@@ -1,4 +1,4 @@
-"""Stable OpenClaw exec wrapper for mp-article-bridge."""
+"""Stable OpenClaw exec wrapper for wechat-reader."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ DEFAULT_WAIT_FOR_MANUAL_VERIFY = 90
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="OpenClaw exec wrapper for mp-article-bridge.")
+    parser = argparse.ArgumentParser(description="OpenClaw exec wrapper for wechat-reader.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     schema_parser = subparsers.add_parser("schema", help="Print wrapper input schema.")
@@ -44,8 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def input_schema() -> dict[str, Any]:
     return {
-        "tool": "mp-article-bridge-openclaw",
-        "description": "Read WeChat article URLs through the mp-article-bridge local visible browser bridge.",
+        "tool": "wechat-reader-openclaw",
+        "description": "Read WeChat article URLs through the wechat-reader local visible browser bridge.",
         "commands": {
             "read": {
                 "required": ["url"],
@@ -140,7 +140,7 @@ def _print_payload(payload: dict[str, Any], *, pretty: bool) -> None:
 
 def _error_payload(message: str) -> dict[str, Any]:
     return {
-        "tool": "mp-article-bridge-openclaw",
+        "tool": "wechat-reader-openclaw",
         "status": "invalid_input",
         "next_action": "fix_tool_input",
         "user_message": message,
@@ -157,7 +157,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "setup":
         payload = {
-            "tool": "mp-article-bridge-openclaw",
+            "tool": "wechat-reader-openclaw",
             "status": "ok",
             "next_action": "inspect_setup",
             "setup": run_setup_diagnostics(),

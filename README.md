@@ -1,63 +1,60 @@
-# mp-article-bridge
+# wechat-reader
 
-Local browser bridge for agents to read WeChat Official Account articles from an authenticated browser session.
+CLI + MCP server + Python API for reading WeChat Official Account articles from a verified browser session.
 
-## What This Is
+`wechat-reader` is a WeChat article reader for AI agents and local automation. It reuses a real browser session when possible, returns structured page states such as `ok` and `captcha_required`, and exposes the same local bridge through CLI, MCP, and Python.
 
-`mp-article-bridge` is not a generic "bypass WeChat anti-bot" scraper.
+Use it through:
 
-It is a local bridge that helps AI agents and automation tools:
+- `wechat-reader`: open, read, inspect, and export article content from a visible browser
+- `wechat-reader-mcp`: expose the bridge as an MCP server for Claude, Codex, and other agent runtimes
+- `wechat_reader`: import the Python API directly inside your own tooling
 
-- connect to an existing browser session or a managed bridge browser
-- open a WeChat article URL when needed
-- detect whether the page is readable, blocked, rate-limited, or still rendering
-- extract article content from the live DOM when the page is actually readable
+## Quick Start
 
-This project is designed for agent workflows such as OpenClaw, MCP-based tools, Claude Code, Codex, or custom local assistants.
+Python 3.11+ is required.
 
-## Why This Exists
+### Install
 
-WeChat article pages are hostile to direct automation:
+```bash
+pip install -e .
+python -m playwright install chromium
+```
 
-- plain HTTP fetches usually fail or redirect to verification pages
-- fresh Playwright/browser automation sessions often trigger `wappoc_appmsgcaptcha`
-- even visible browsers may hit "environment abnormal" or "operation too frequent"
+### Read an article through the CLI
 
-So the practical goal is not "fetch any article headlessly".
+```bash
+wechat-reader read "https://mp.weixin.qq.com/s?..." --json
+```
 
-The practical goal is:
+### Diagnose the local browser environment
 
-- reuse a browser session the user can actually verify
-- return structured status instead of vague failure
-- let an agent guide the user when manual verification is required
+```bash
+wechat-reader setup
+```
 
-## Current Project Status
+### Start the MCP server
 
-This repository is a working local bridge with the core browser, CLI, Python API, OpenClaw, and MCP paths implemented.
+```bash
+wechat-reader-mcp
+```
 
-Currently implemented and locally validated:
+### Use the Python API
 
-- CLI commands: `setup`, `tabs`, `open`, `read`
-- browser strategies: `auto`, `attach`, `launch`, `playwright`
-- managed bridge profile under `~/.wechat-reader/profiles/default`
-- structured page status detection for WeChat pages
-- manual verification wait mode for blocked pages
-- stdio MCP server with tool-based access for agent runtimes
+```python
+from wechat_reader import read_article_sync
 
-Real-world validation so far:
+result = read_article_sync("https://mp.weixin.qq.com/s?...", strategy="auto", timeout=30)
+print(result.status, result.title)
+```
 
-- the bridge browser can be launched or reused
-- real WeChat links can be opened and classified
-- blocked pages correctly return `captcha_required`
-- after manual verification, a real `wappoc_appmsgcaptcha` wrapper link was unwrapped to its article `target_url`
-- the real article body was successfully read through attach mode from the verified Chrome tab
-- the same validated read path also successfully saved markdown output
+## What You Get
 
-Current value:
-
-- reliable state detection plus browser/session reuse
-- successful real-world article extraction after user verification
-- reproducible markdown export from the verified article page
+- browser reuse via `attach`, `launch`, `playwright`, and `auto`
+- structured statuses such as `ok`, `captcha_required`, `rate_limited`, and `browser_not_ready`
+- markdown and JSON output from the CLI
+- an MCP server with tools and resources
+- a Python API for direct integration
 
 ## Screenshots
 
@@ -81,112 +78,90 @@ This shows the OpenClaw-oriented blocked path with `captcha_required` and `next_
 
 This shows the real Codex-host MCP validation path used to confirm `wechat_setup` can be reached through a configured stdio MCP server.
 
-## Core Ideas
+## Current Status
 
-### 1. Prefer attach over fresh automation
+This repository is a working local bridge with the core browser, CLI, Python API, OpenClaw, and MCP paths implemented.
 
-If the user already has a browser session with a valid WeChat state, reuse it.
+Currently implemented and locally validated:
 
-### 2. Use a persistent bridge profile
+- CLI commands: `setup`, `tabs`, `open`, `read`
+- browser strategies: `auto`, `attach`, `launch`, `playwright`
+- managed bridge profile under `~/.wechat-reader/profiles/default`
+- structured page status detection for WeChat pages
+- manual verification wait mode for blocked pages
+- stdio MCP server with tool-based access for agent runtimes
+- fresh virtualenv install validation
 
-If no attachable browser is available, `launch` starts a managed browser with a persistent profile, so verification state can survive across runs.
+Real-world validation so far:
 
-Default bridge profile:
+- the bridge browser can be launched or reused
+- real WeChat links can be opened and classified
+- blocked pages correctly return `captcha_required`
+- after manual verification, a real `wappoc_appmsgcaptcha` wrapper link was unwrapped to its article `target_url`
+- the real article body was successfully read through attach mode from the verified Chrome tab
+- the same validated read path also successfully saved markdown output
+- a real Codex-host MCP run successfully called `wechat_setup`
 
-- macOS / Linux: `~/.wechat-reader/profiles/default`
-- Windows: `%USERPROFILE%\.wechat-reader\profiles\default`
+## MCP Server
 
-### 3. Return structured status
-
-Instead of pretending every page is readable, return explicit status:
-
-- `ok`
-- `captcha_required`
-- `rate_limited`
-- `article_not_rendered`
-- `unsupported_page`
-- `browser_not_ready`
-- `browser_not_found`
-- `navigation_failed`
-
-## Installation
-
-Python 3.12+ is required.
-
-### pipx
+A stdio MCP server is included:
 
 ```bash
-pipx install .
-python -m playwright install chromium
+wechat-reader-mcp
 ```
 
-### pip
+Currently exposed tools:
 
-```bash
-pip install -e .
-python -m playwright install chromium
+- `wechat_read_article`
+- `wechat_open_article`
+- `wechat_list_tabs`
+- `wechat_read_current_tab`
+- `wechat_get_status`
+- `wechat_setup`
+
+Currently exposed resources:
+
+- `wechat-reader://setup`
+- `wechat-reader://tabs`
+- project `README.md`
+- OpenClaw integration `README.md`
+
+The server implements `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
+
+### Example MCP Client Config
+
+For MCP clients that launch stdio servers from JSON config:
+
+```json
+{
+  "mcpServers": {
+    "wechat-reader": {
+      "command": "wechat-reader-mcp",
+      "args": []
+    }
+  }
+}
 ```
 
-Chrome is recommended for real-world use. Chromium / Playwright fallback is kept as an explicit compatibility path, not the primary strategy.
+If you are running directly from the source tree instead of an installed package:
 
-## Quick Start
-
-### 1. Diagnose the environment
-
-```bash
-mp-article-bridge setup
+```json
+{
+  "mcpServers": {
+    "wechat-reader": {
+      "command": "python3",
+      "args": ["-m", "wechat_reader.mcp_server"],
+      "cwd": "/Users/wangjiaying/Projects/mp-article-bridge"
+    }
+  }
+}
 ```
 
-Typical output shows:
+Recommended first checks after connecting:
 
-- whether Chrome is installed
-- whether any CDP endpoint is reachable
-- the default bridge profile path
-- the recommended launch command
-
-### 2. Launch a managed browser bridge
-
-```bash
-mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --channel chrome \
-  --json
-```
-
-This will:
-
-- launch or reuse a managed bridge browser
-- navigate to the WeChat URL
-- return current page status
-
-### 3. Wait for manual verification and retry reading
-
-```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --channel chrome \
-  --wait-for-manual-verify 90 \
-  --json
-```
-
-If WeChat blocks the page, the command will wait on the same page for up to 90 seconds so the user can complete verification in the browser.
-
-If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptcha?...&target_url=...`, `mp-article-bridge` will unwrap it to the real article URL before matching tabs or navigating. This avoids sending an already-verified browser tab back to the captcha entry page.
-
-### 4. Attach to an existing browser
-
-```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
-  --strategy attach \
-  --cdp-url http://127.0.0.1:9222 \
-  --json
-```
-
-### 5. List current WeChat tabs
-
-```bash
-mp-article-bridge tabs --wechat-only --json
-```
+1. call `wechat_setup`
+2. call `wechat_list_tabs`
+3. call `wechat_read_article` with a known WeChat article URL or wrapper URL
 
 ## CLI
 
@@ -195,8 +170,8 @@ mp-article-bridge tabs --wechat-only --json
 Diagnose prerequisites and print recommended launch guidance.
 
 ```bash
-mp-article-bridge setup
-mp-article-bridge setup --json
+wechat-reader setup
+wechat-reader setup --json
 ```
 
 ### `tabs`
@@ -204,8 +179,8 @@ mp-article-bridge setup --json
 List attachable tabs from a browser exposing CDP.
 
 ```bash
-mp-article-bridge tabs --wechat-only
-mp-article-bridge tabs --wechat-only --json
+wechat-reader tabs --wechat-only
+wechat-reader tabs --wechat-only --json
 ```
 
 ### `open`
@@ -213,7 +188,7 @@ mp-article-bridge tabs --wechat-only --json
 Open a URL in a managed or attached browser and report page status without requiring full article extraction.
 
 ```bash
-mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
+wechat-reader open "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
   --channel chrome \
   --json
@@ -224,7 +199,7 @@ mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
 High-level command: reuse an existing matching tab if possible, otherwise navigate according to strategy, then attempt extraction.
 
 ```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
+wechat-reader read "https://mp.weixin.qq.com/s?..." \
   --strategy auto \
   --timeout 30 \
   --json
@@ -233,11 +208,11 @@ mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
 Save markdown on success:
 
 ```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
+wechat-reader read "https://mp.weixin.qq.com/s?..." \
   --output ./articles
 ```
 
-This also works with previously shared captcha wrapper links after verification is complete. The wrapper URL is normalized to its `target_url` before reading and saving.
+If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptcha?...&target_url=...`, `wechat-reader` will unwrap it to the real article URL before matching tabs or navigating. This avoids sending an already-verified browser tab back to the captcha entry page.
 
 ## Strategy Model
 
@@ -257,7 +232,7 @@ If the requested URL is a captcha wrapper link and the corresponding real articl
 
 ### `launch`
 
-Launch or reuse a managed Chrome/Chromium bridge browser using a persistent profile controlled by `mp-article-bridge`.
+Launch or reuse a managed Chrome/Chromium bridge browser using a persistent profile controlled by `wechat-reader`.
 
 This is the recommended fallback when the user does not already run Chrome with a debug port.
 
@@ -274,28 +249,6 @@ Explicit compatibility fallback. Useful for development or non-Chrome environmen
 - `--profile-dir <path>`: explicit bridge profile directory
 - `--profile-name <name>`: named profile under `~/.wechat-reader/profiles/`
 - `--ephemeral`: use a temporary profile for debugging only
-
-## OpenClaw Example
-
-An OpenClaw-oriented wrapper is included under [examples/openclaw/README.md](./examples/openclaw/README.md).
-
-Use it when you want the tool to return agent-friendly fields such as:
-
-- `next_action`
-- `user_message`
-- `article` on success
-
-Example:
-
-```bash
-mp-article-bridge-openclaw \
-  read \
-  "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --wait-for-manual-verify 90
-```
-
-The OpenClaw wrapper is implemented in [wechat_reader/openclaw_tool.py](./wechat_reader/openclaw_tool.py) and is intended to be the stable executable interface for agent runtimes.
 
 ## Output Model
 
@@ -338,9 +291,7 @@ Blocked result:
 - `url_unwrapped`: whether a captcha wrapper URL was normalized to `target_url`
 - `runtime_strategy`: the strategy that actually ran, such as `attach` or `launch`
 - `reused_existing_tab`: whether an existing browser tab was reused
-- `navigation_performed`: whether `mp-article-bridge` had to navigate the page during this call
-
-These fields are useful when a link appears to "bounce" between a captcha page and the article page, or when you need to confirm whether attach mode reused the already-verified tab.
+- `navigation_performed`: whether `wechat-reader` had to navigate the page during this call
 
 ## Python API
 
@@ -372,85 +323,27 @@ result = read_article_sync(
 print(result.status, result.hint)
 ```
 
-## MCP Server
+## OpenClaw Example
 
-A minimal stdio MCP server is included:
+An OpenClaw-oriented wrapper is included under [examples/openclaw/README.md](./examples/openclaw/README.md).
+
+Use it when you want the tool to return agent-friendly fields such as:
+
+- `next_action`
+- `user_message`
+- `article` on success
+
+Example:
 
 ```bash
-mp-article-bridge-mcp
+wechat-reader-openclaw \
+  read \
+  "https://mp.weixin.qq.com/s?..." \
+  --strategy launch \
+  --wait-for-manual-verify 90
 ```
 
-Currently exposed tools:
-
-- `wechat_read_article`
-- `wechat_open_article`
-- `wechat_list_tabs`
-- `wechat_read_current_tab`
-- `wechat_get_status`
-- `wechat_setup`
-
-Currently exposed resources:
-
-- `mp-article-bridge://setup`
-- `mp-article-bridge://tabs`
-- project `README.md`
-- OpenClaw integration `README.md`
-
-The server implements the MCP flow for `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
-
-Tool results such as `wechat_setup` and `wechat_list_tabs` also include `resource_link` items so MCP clients can jump directly from a tool call to the related diagnostic resource.
-
-### Example MCP Client Config
-
-For MCP clients that launch stdio servers from a JSON config, the shape is typically:
-
-```json
-{
-  "mcpServers": {
-    "mp-article-bridge": {
-      "command": "mp-article-bridge-mcp",
-      "args": []
-    }
-  }
-}
-```
-
-If you are running directly from the source tree instead of an installed package:
-
-```json
-{
-  "mcpServers": {
-    "mp-article-bridge": {
-      "command": "python3",
-      "args": ["-m", "wechat_reader.mcp_server"],
-      "cwd": "/Users/wangjiaying/Projects/mp-article-bridge"
-    }
-  }
-}
-```
-
-Recommended first checks after connecting:
-
-1. call `wechat_setup`
-2. call `wechat_list_tabs`
-3. call `wechat_read_article` with a known WeChat article URL or wrapper URL
-
-## OpenClaw / Agent Usage
-
-The intended agent flow is:
-
-1. agent receives a WeChat article URL
-2. agent calls `mp-article-bridge open` or `mp-article-bridge read`
-3. if status is `ok`, agent consumes content
-4. if status is `captcha_required` or `rate_limited`, agent tells the user to complete verification in the managed browser and retry
-
-This project is meant to be a local browser-side primitive for agents, not a hidden cloud scraping backend.
-
-Real-world validation on March 2, 2026:
-
-- attach mode against a live WeChat verification page returned `captcha_required`
-- the OpenClaw wrapper mapped that result to `next_action = ask_user_to_verify`
-- this is the intended behavior for `wappoc_appmsgcaptcha` pages
+The OpenClaw wrapper is implemented in [wechat_reader/openclaw_tool.py](./wechat_reader/openclaw_tool.py) and is intended to be the stable executable interface for agent runtimes.
 
 ## Mobile-Initiated Workflows
 
@@ -459,11 +352,13 @@ Pure mobile-side DOM access is usually not realistic because WeChat links often 
 The recommended mobile-friendly architecture is:
 
 - user sends the link from mobile
-- agent forwards the task to a desktop `mp-article-bridge` bridge
+- agent forwards the task to a desktop `wechat-reader` bridge
 - desktop browser handles verification and reading
 - agent returns the result to the mobile conversation
 
 ## Known Limitations
+
+`wechat-reader` is not a generic "bypass WeChat anti-bot" scraper.
 
 - WeChat anti-bot behavior can change without warning
 - some links may still require repeated manual verification
@@ -492,10 +387,11 @@ Current state:
 - local unit tests and compile check: passing
 - real local verification and markdown export: completed
 - real MCP host validation: completed
+- fresh virtualenv install validation: completed
 
 Still recommended before broad promotion:
 
-- run a clean-machine install check from `pipx` or a fresh virtualenv
+- decide whether the repository should stay private a little longer or move to public visibility
 
 ## Development
 
@@ -508,8 +404,8 @@ python -m unittest discover -s tests -v
 Basic CLI check:
 
 ```bash
-mp-article-bridge setup
-mp-article-bridge read --help
+wechat-reader setup
+wechat-reader read --help
 ```
 
 ## Roadmap

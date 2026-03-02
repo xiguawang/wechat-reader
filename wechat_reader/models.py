@@ -1,4 +1,4 @@
-"""Core datatypes for mp-article-bridge."""
+"""Core datatypes for wechat-reader."""
 
 from __future__ import annotations
 

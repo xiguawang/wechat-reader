@@ -1,37 +1,60 @@
-# mp-article-bridge
+# wechat-reader
 
-面向 AI Agent 的本地浏览器桥接工具，用于在用户已登录、已验证的浏览器会话中读取微信公众号文章。
+面向 AI Agent 的微信公众号阅读工具，提供 CLI、MCP server 和 Python API，可复用用户已登录、已验证的浏览器会话。
 
-## 这是什么
+`wechat-reader` 适合这样的场景：用户已经有一个真实浏览器窗口可以手动完成微信验证，而 agent 需要一个结构化、可重试、可诊断的阅读接口。
 
-`mp-article-bridge` 不是一个承诺“稳定绕过微信风控”的通用抓取器。
+使用入口：
 
-它的目标更克制，也更真实：
+- `wechat-reader`：直接在终端里读取、打开、诊断微信文章页面
+- `wechat-reader-mcp`：把同样的能力暴露给 Claude、Codex 等支持 MCP 的宿主
+- `wechat_reader`：在你自己的 Python 工具里直接调用
 
-- 连接用户现有浏览器，或启动一个受控的 bridge 浏览器
-- 在需要时主动打开公众号文章链接
-- 判断页面当前是可读、需验证、限流，还是尚未渲染完成
-- 当页面真实可读时，从当前 DOM 提取标题、作者和正文
+## 快速开始
 
-这个项目面向本地 Agent 工作流，例如 OpenClaw、MCP 客户端、Claude Code、Codex 或自定义桌面助手。
+要求 Python 3.11+。
 
-## 当前状态
+### 安装
 
-当前仓库已经具备一条可工作的主链路：
+```bash
+pip install -e .
+python -m playwright install chromium
+```
 
-- CLI：`setup`、`tabs`、`open`、`read`
-- 浏览器策略：`auto`、`attach`、`launch`、`playwright`
-- Python API
-- OpenClaw wrapper
-- stdio MCP server
-- GitHub Actions CI
+### 通过 CLI 读取文章
 
-已经完成的本地真实验证包括：
+```bash
+wechat-reader read "https://mp.weixin.qq.com/s?..." --json
+```
 
-- 识别真实微信验证页并返回 `captcha_required`
-- 用户手动完成验证后，复用已验证的 Chrome tab 读取正文
-- 自动将 `wappoc_appmsgcaptcha?...target_url=...` 解包为真实文章 URL
-- 成功保存 markdown 输出
+### 检查本机浏览器环境
+
+```bash
+wechat-reader setup
+```
+
+### 启动 MCP Server
+
+```bash
+wechat-reader-mcp
+```
+
+### Python API
+
+```python
+from wechat_reader import read_article_sync
+
+result = read_article_sync("https://mp.weixin.qq.com/s?...", strategy="auto", timeout=30)
+print(result.status, result.title)
+```
+
+## 你会得到什么
+
+- `attach`、`launch`、`playwright`、`auto` 四种浏览器策略
+- `ok`、`captcha_required`、`rate_limited` 等结构化状态
+- CLI 下的 JSON / Markdown 输出
+- 可直接接入 agent 的 MCP server
+- 可嵌入你自己工具链的 Python API
 
 ## 截图
 
@@ -49,106 +72,32 @@
 
 ![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
 
-## 核心思路
+## 当前状态
 
-### 优先复用已有浏览器
+当前仓库已经具备一条可工作的主链路：
 
-如果用户当前浏览器里已经有通过验证的微信页面，应优先 attach，而不是新建一个更容易触发风控的自动化会话。
+- CLI：`setup`、`tabs`、`open`、`read`
+- 浏览器策略：`auto`、`attach`、`launch`、`playwright`
+- Python API
+- OpenClaw wrapper
+- stdio MCP server
+- GitHub Actions CI
+- fresh virtualenv 安装验证
 
-### 使用持久化 bridge profile
+已经完成的本地真实验证包括：
 
-当没有可 attach 的浏览器时，`launch` 会启动一个带持久化 profile 的 bridge 浏览器，让首次人工验证可以沉淀到后续运行中。
-
-默认 profile 路径：
-
-- macOS / Linux: `~/.wechat-reader/profiles/default`
-- Windows: `%USERPROFILE%\.wechat-reader\profiles\default`
-
-### 返回结构化状态
-
-工具不会把所有失败都伪装成“超时”。
-
-常见状态包括：
-
-- `ok`
-- `captcha_required`
-- `rate_limited`
-- `article_not_rendered`
-- `unsupported_page`
-- `browser_not_ready`
-- `browser_not_found`
-- `navigation_failed`
-
-## 安装
-
-要求 Python 3.12+。
-
-### pipx
-
-```bash
-pipx install .
-python -m playwright install chromium
-```
-
-### pip
-
-```bash
-pip install -e .
-python -m playwright install chromium
-```
-
-真实使用时更推荐 Chrome。Chromium / Playwright fallback 主要用于兼容和开发，不是首选路径。
-
-## 快速开始
-
-### 1. 检查环境
-
-```bash
-mp-article-bridge setup
-```
-
-### 2. 启动 bridge 浏览器
-
-```bash
-mp-article-bridge open "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --channel chrome \
-  --json
-```
-
-### 3. 等待用户手动验证后继续读取
-
-```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --channel chrome \
-  --wait-for-manual-verify 90 \
-  --json
-```
-
-如果输入的是微信验证包装链接，例如 `mp/wappoc_appmsgcaptcha?...&target_url=...`，工具会先解包到真实文章 URL，再做 tab 匹配和导航，避免把已验证页面重新带回验证码入口。
-
-### 4. 连接已有浏览器
-
-```bash
-mp-article-bridge read "https://mp.weixin.qq.com/s?..." \
-  --strategy attach \
-  --cdp-url http://127.0.0.1:9222 \
-  --json
-```
-
-### 5. 列出当前微信标签页
-
-```bash
-mp-article-bridge tabs --wechat-only --json
-```
+- 识别真实微信验证页并返回 `captcha_required`
+- 用户手动完成验证后，复用已验证的 Chrome tab 读取正文
+- 自动将 `wappoc_appmsgcaptcha?...target_url=...` 解包为真实文章 URL
+- 成功保存 markdown 输出
+- 真实 Codex host 调用 `wechat_setup`
 
 ## MCP Server
 
-项目内置了一个最小可用的 stdio MCP server：
+项目内置了一个 stdio MCP server：
 
 ```bash
-mp-article-bridge-mcp
+wechat-reader-mcp
 ```
 
 当前暴露的 tools：
@@ -162,12 +111,50 @@ mp-article-bridge-mcp
 
 当前暴露的 resources：
 
-- `mp-article-bridge://setup`
-- `mp-article-bridge://tabs`
+- `wechat-reader://setup`
+- `wechat-reader://tabs`
 - 项目 `README.md`
 - OpenClaw 集成 `README.md`
 
+## CLI
+
+### `setup`
+
+```bash
+wechat-reader setup
+wechat-reader setup --json
+```
+
+### `tabs`
+
+```bash
+wechat-reader tabs --wechat-only
+wechat-reader tabs --wechat-only --json
+```
+
+### `open`
+
+```bash
+wechat-reader open "https://mp.weixin.qq.com/s?..." \
+  --strategy launch \
+  --channel chrome \
+  --json
+```
+
+### `read`
+
+```bash
+wechat-reader read "https://mp.weixin.qq.com/s?..." \
+  --strategy auto \
+  --timeout 30 \
+  --json
+```
+
+如果输入的是微信验证包装链接，例如 `mp/wappoc_appmsgcaptcha?...&target_url=...`，工具会先解包到真实文章 URL，再做 tab 匹配和导航，避免把已验证页面重新带回验证码入口。
+
 ## 限制说明
+
+`wechat-reader` 不是一个承诺“稳定绕过微信风控”的通用抓取器。
 
 - 微信风控可能随时变化
 - 某些链接仍然需要用户先手动完成验证
@@ -187,10 +174,11 @@ mp-article-bridge-mcp
 - CI 已配置
 - MCP 基础接入已完成
 - 真实 MCP host 验证已完成
+- fresh virtualenv 安装验证已完成
 
 仍建议继续补的内容：
 
-- 干净环境安装验证
+- 决定是否继续保持私有，还是转公开
 
 ## 许可证
 

@@ -19,7 +19,7 @@ class McpServerTests(unittest.TestCase):
         assert response is not None
         self.assertEqual(response["result"]["capabilities"]["tools"]["listChanged"], False)
         self.assertEqual(response["result"]["capabilities"]["resources"]["listChanged"], False)
-        self.assertEqual(response["result"]["serverInfo"]["name"], "mp-article-bridge")
+        self.assertEqual(response["result"]["serverInfo"]["name"], "wechat-reader")
 
     def test_tools_list_includes_expected_tool_names(self) -> None:
         response = handle_message({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
@@ -48,8 +48,8 @@ class McpServerTests(unittest.TestCase):
         assert response is not None
         resources = response["result"]["resources"]
         uris = [resource["uri"] for resource in resources]
-        self.assertIn("mp-article-bridge://setup", uris)
-        self.assertIn("mp-article-bridge://tabs", uris)
+        self.assertIn("wechat-reader://setup", uris)
+        self.assertIn("wechat-reader://tabs", uris)
         self.assertTrue(any(uri.endswith("/README.md") for uri in uris))
 
     def test_resources_read_returns_setup_json(self) -> None:
@@ -59,7 +59,7 @@ class McpServerTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": 22,
                     "method": "resources/read",
-                    "params": {"uri": "mp-article-bridge://setup"},
+                    "params": {"uri": "wechat-reader://setup"},
                 }
             )
 
@@ -76,7 +76,7 @@ class McpServerTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": 23,
                     "method": "resources/read",
-                    "params": {"uri": "mp-article-bridge://tabs"},
+                    "params": {"uri": "wechat-reader://tabs"},
                 }
             )
 
@@ -90,7 +90,7 @@ class McpServerTests(unittest.TestCase):
                 "jsonrpc": "2.0",
                 "id": 24,
                 "method": "resources/read",
-                "params": {"uri": "mp-article-bridge://missing"},
+                "params": {"uri": "wechat-reader://missing"},
             }
         )
 
@@ -138,7 +138,7 @@ class McpServerTests(unittest.TestCase):
 
         assert response is not None
         resource_links = [item for item in response["result"]["content"] if item["type"] == "resource_link"]
-        self.assertEqual(resource_links[0]["uri"], "mp-article-bridge://setup")
+        self.assertEqual(resource_links[0]["uri"], "wechat-reader://setup")
 
     def test_wechat_read_article_returns_tool_error_when_url_missing(self) -> None:
         response = handle_message(

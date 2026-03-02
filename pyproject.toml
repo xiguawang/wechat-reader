@@ -3,11 +3,11 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mp-article-bridge"
+name = "wechat-reader"
 version = "0.1.0"
-description = "Local browser bridge for agents to read WeChat articles."
+description = "CLI, MCP server, and Python API for reading WeChat articles from a verified browser session."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
   { name = "wangjiaying" }
@@ -17,9 +17,9 @@ dependencies = [
 ]
 
 [project.scripts]
-mp-article-bridge = "wechat_reader.cli:main"
-mp-article-bridge-openclaw = "wechat_reader.openclaw_tool:main"
-mp-article-bridge-mcp = "wechat_reader.mcp_server:main"
+wechat-reader = "wechat_reader.cli:main"
+wechat-reader-openclaw = "wechat_reader.openclaw_tool:main"
+wechat-reader-mcp = "wechat_reader.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["wechat_reader*"]

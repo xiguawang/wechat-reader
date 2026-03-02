@@ -1,4 +1,4 @@
-"""Minimal stdio MCP server for mp-article-bridge."""
+"""Minimal stdio MCP server for wechat-reader."""
 
 from __future__ import annotations
 
@@ -17,14 +17,14 @@ from .setup import run_setup_diagnostics
 
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2025-06-18"
-SERVER_NAME = "mp-article-bridge"
+SERVER_NAME = "wechat-reader"
 TOOLS_PAGE_SIZE = 50
 RESOURCES_PAGE_SIZE = 50
 
 
 def _server_version() -> str:
     try:
-        return version("mp-article-bridge")
+        return version("wechat-reader")
     except PackageNotFoundError:
         return "0.1.0"
 
@@ -112,7 +112,7 @@ def _resource_definitions() -> list[dict[str, Any]]:
     repo_root = _repo_root()
     return [
         {
-            "uri": "mp-article-bridge://setup",
+            "uri": "wechat-reader://setup",
             "name": "setup",
             "title": "Bridge Setup Diagnostics",
             "description": "Current local browser bridge diagnostics as JSON.",
@@ -120,7 +120,7 @@ def _resource_definitions() -> list[dict[str, Any]]:
             "annotations": _resource_annotations(audience=["assistant"], priority=0.95),
         },
         {
-            "uri": "mp-article-bridge://tabs",
+            "uri": "wechat-reader://tabs",
             "name": "tabs",
             "title": "Current WeChat Tabs",
             "description": "Current attachable WeChat browser tabs as JSON.",
@@ -159,7 +159,7 @@ def _resource_link(uri: str, *, name: str, description: str, mime_type: str) -> 
 
 def _resource_contents(uri: str) -> dict[str, Any]:
     parsed = urlsplit(uri)
-    if uri == "mp-article-bridge://setup":
+    if uri == "wechat-reader://setup":
         return {
             "contents": [
                 {
@@ -169,7 +169,7 @@ def _resource_contents(uri: str) -> dict[str, Any]:
                 }
             ]
         }
-    if parsed.scheme == "mp-article-bridge" and parsed.netloc == "tabs":
+    if parsed.scheme == "wechat-reader" and parsed.netloc == "tabs":
         query = parse_qs(parsed.query)
         cdp_url = query.get("cdp_url", [None])[0]
         wechat_only_raw = query.get("wechat_only", ["true"])[0]
@@ -453,7 +453,7 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             _tabs_payload(tabs),
             resource_links=[
                 _resource_link(
-                    "mp-article-bridge://tabs",
+                    "wechat-reader://tabs",
                     name="tabs",
                     description="Current WeChat tabs resource",
                     mime_type="application/json",
@@ -497,7 +497,7 @@ def _handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             {"setup": run_setup_diagnostics()},
             resource_links=[
                 _resource_link(
-                    "mp-article-bridge://setup",
+                    "wechat-reader://setup",
                     name="setup",
                     description="Bridge setup diagnostics resource",
                     mime_type="application/json",
@@ -534,7 +534,7 @@ def handle_message(message: dict[str, Any]) -> dict[str, Any] | None:
                 },
                 "serverInfo": {
                     "name": SERVER_NAME,
-                    "title": "mp-article-bridge MCP Server",
+                    "title": "wechat-reader MCP Server",
                     "version": _server_version(),
                 },
                 "instructions": "Use the WeChat bridge tools to inspect WeChat tabs, read verified articles, and diagnose local bridge setup.",

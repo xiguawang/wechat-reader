@@ -1,4 +1,4 @@
-"""CLI entrypoint for mp-article-bridge."""
+"""CLI entrypoint for wechat-reader."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
-  <title id="title">Successful mp-article-bridge read screenshot</title>
+  <title id="title">Successful wechat-reader read screenshot</title>
   <desc id="desc">Terminal-style screenshot showing a successful verified article read.</desc>
   <rect width="1200" height="760" fill="#0f172a"/>
   <rect x="24" y="24" width="1152" height="712" rx="18" fill="#111827" stroke="#334155" stroke-width="2"/>
@@ -7,9 +7,9 @@
   <circle cx="58" cy="52" r="9" fill="#fb7185"/>
   <circle cx="88" cy="52" r="9" fill="#fbbf24"/>
   <circle cx="118" cy="52" r="9" fill="#34d399"/>
-  <text x="600" y="58" text-anchor="middle" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="22">mp-article-bridge read</text>
+  <text x="600" y="58" text-anchor="middle" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="22">wechat-reader read</text>
   <text fill="#e5e7eb" font-family="Menlo, Consolas, monospace" font-size="24" xml:space="preserve">
-    <tspan x="54" y="126">$ mp-article-bridge read "&lt;wrapper-url&gt;" \</tspan>
+    <tspan x="54" y="126">$ wechat-reader read "&lt;wrapper-url&gt;" \</tspan>
     <tspan x="54" y="162">    --strategy attach --cdp-url http://127.0.0.1:9222 --json</tspan>
     <tspan x="54" y="214">{</tspan>
     <tspan x="54" y="250">  "status": "ok",</tspan>

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
   <title id="title">MCP host validation screenshot</title>
-  <desc id="desc">Terminal-style screenshot showing real Codex-host validation of the mp-article-bridge MCP server.</desc>
+  <desc id="desc">Terminal-style screenshot showing real Codex-host validation of the wechat-reader MCP server.</desc>
   <rect width="1200" height="760" fill="#020617"/>
   <rect x="24" y="24" width="1152" height="712" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2"/>
   <rect x="24" y="24" width="1152" height="56" rx="18" fill="#172554"/>

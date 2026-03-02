@@ -1,10 +1,10 @@
 # OpenClaw Integration Example
 
-This example shows how to use `mp-article-bridge` as a local bridge for an OpenClaw-style agent.
+This example shows how to use `wechat-reader` as a local bridge for an OpenClaw-style agent.
 
 Two entrypoints are included:
 
-- `mp-article-bridge-openclaw`: the stable exec wrapper intended for real agent integration
+- `wechat-reader-openclaw`: the stable exec wrapper intended for real agent integration
 - `examples/openclaw/openclaw_wechat_bridge.py`: a source-tree example script that mirrors the same behavior
 
 ## Goal
@@ -21,7 +21,7 @@ When the agent sees an `mp.weixin.qq.com` URL, it should:
 ### 1. First attempt: read directly through the bridge
 
 ```bash
-mp-article-bridge-openclaw \
+wechat-reader-openclaw \
   read \
   "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
@@ -33,7 +33,7 @@ Typical responses:
 - `next_action=return_article`: the agent can summarize or quote the article body
 - `next_action=ask_user_to_verify`: the agent should tell the user to complete verification in the visible bridge browser, then retry
 - `next_action=ask_user_to_retry`: the agent should tell the user WeChat rate-limited the page
-- `next_action=guide_browser_setup`: the agent should guide the user through `mp-article-bridge setup`
+- `next_action=guide_browser_setup`: the agent should guide the user through `wechat-reader setup`
 
 ### 2. If the page is blocked
 
@@ -44,7 +44,7 @@ Tell the user something like:
 ### 3. Retry the read
 
 ```bash
-mp-article-bridge-openclaw \
+wechat-reader-openclaw \
   read \
   "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
@@ -53,7 +53,7 @@ mp-article-bridge-openclaw \
 
 ## Why This Wrapper Exists
 
-`mp-article-bridge` returns detailed page states such as `captcha_required` and `article_not_rendered`.
+`wechat-reader` returns detailed page states such as `captcha_required` and `article_not_rendered`.
 
 OpenClaw usually wants a higher-level decision model:
 
@@ -61,7 +61,7 @@ OpenClaw usually wants a higher-level decision model:
 - what should the agent say to the user
 - whether article content is available right now
 
-This wrapper converts `mp-article-bridge` results into:
+This wrapper converts `wechat-reader` results into:
 
 - `status`
 - `next_action`
@@ -76,7 +76,7 @@ Blocked page:
 
 ```json
 {
-  "tool": "mp-article-bridge",
+  "tool": "wechat-reader",
   "status": "captcha_required",
   "next_action": "ask_user_to_verify",
   "user_message": "Please complete verification in the browser, then retry."
@@ -87,7 +87,7 @@ Successful read:
 
 ```json
 {
-  "tool": "mp-article-bridge",
+  "tool": "wechat-reader",
   "status": "ok",
   "next_action": "return_article",
   "user_message": "Read WeChat article: Example Title",
@@ -106,7 +106,7 @@ Pseudo-flow:
 
 ```text
 if url.host == "mp.weixin.qq.com":
-    result = run mp-article-bridge-openclaw read <url> --strategy launch --wait-for-manual-verify 90
+    result = run wechat-reader-openclaw read <url> --strategy launch --wait-for-manual-verify 90
     if result.next_action == "return_article":
         answer from article.content
     elif result.next_action == "ask_user_to_verify":
@@ -123,7 +123,7 @@ For tool runners that prefer stdin payloads over argv:
 
 ```bash
 printf '%s\n' '{"url":"https://mp.weixin.qq.com/s?...","strategy":"launch","wait_for_manual_verify":90}' \
-  | mp-article-bridge-openclaw read --stdin-json
+  | wechat-reader-openclaw read --stdin-json
 ```
 
 ## Schema And Setup
@@ -131,13 +131,13 @@ printf '%s\n' '{"url":"https://mp.weixin.qq.com/s?...","strategy":"launch","wait
 Print the wrapper schema:
 
 ```bash
-mp-article-bridge-openclaw schema --pretty
+wechat-reader-openclaw schema --pretty
 ```
 
 Run setup diagnostics in wrapper form:
 
 ```bash
-mp-article-bridge-openclaw setup --pretty
+wechat-reader-openclaw setup --pretty
 ```
 
 ## Notes
@@ -153,5 +153,5 @@ Suggested user-facing copy by `next_action`:
 - `return_article`: "I read the WeChat article successfully. I can now summarize it or answer questions from the article body."
 - `ask_user_to_verify`: "I opened the WeChat article in the bridge browser, but WeChat still requires verification. Complete verification in the visible browser window, then ask me to retry."
 - `ask_user_to_retry`: "WeChat is temporarily rate-limiting this page. Wait a bit and ask me to retry."
-- `guide_browser_setup`: "The local browser bridge is not ready yet. Run `mp-article-bridge setup`, or start Chrome with a reachable CDP port, then retry."
+- `guide_browser_setup`: "The local browser bridge is not ready yet. Run `wechat-reader setup`, or start Chrome with a reachable CDP port, then retry."
 - `install_dependencies`: "The local bridge is missing runtime dependencies. Install Playwright and retry the command."
