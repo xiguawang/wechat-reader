@@ -48,9 +48,15 @@ Real-world validation so far:
 - the bridge browser can be launched or reused
 - real WeChat links can be opened and classified
 - blocked pages correctly return `captcha_required`
-- the prototype has not yet reliably completed a full real-world article read on a link that remains behind WeChat verification
+- after manual verification, a real `wappoc_appmsgcaptcha` wrapper link was unwrapped to its article `target_url`
+- the real article body was successfully read through attach mode from the verified Chrome tab
+- the same validated read path also successfully saved markdown output
 
-That limitation is intentional in the docs. The current value is reliable state detection plus browser/session reuse, not a false promise of universal extraction.
+Current value:
+
+- reliable state detection plus browser/session reuse
+- successful real-world article extraction after user verification
+- reproducible markdown export from the verified article page
 
 ## Core Ideas
 

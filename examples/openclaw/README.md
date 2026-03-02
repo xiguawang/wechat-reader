@@ -145,3 +145,13 @@ wechat-reader-openclaw setup --pretty
 - Use `launch` as the default OpenClaw strategy unless the user already exposes a CDP browser.
 - Keep the browser visible. Hidden or fresh automation sessions are more likely to trigger WeChat checks.
 - Treat `captcha_required` as a normal state transition, not a fatal tool error.
+
+## Chat-Facing Prompt Suggestions
+
+Suggested user-facing copy by `next_action`:
+
+- `return_article`: "I read the WeChat article successfully. I can now summarize it or answer questions from the article body."
+- `ask_user_to_verify`: "I opened the WeChat article in the bridge browser, but WeChat still requires verification. Complete verification in the visible browser window, then ask me to retry."
+- `ask_user_to_retry`: "WeChat is temporarily rate-limiting this page. Wait a bit and ask me to retry."
+- `guide_browser_setup`: "The local browser bridge is not ready yet. Run `wechat-reader setup`, or start Chrome with a reachable CDP port, then retry."
+- `install_dependencies`: "The local bridge is missing runtime dependencies. Install Playwright and retry the command."
