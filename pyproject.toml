@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wechat-reader"
+name = "mp-article-bridge"
 version = "0.1.0"
 description = "Local browser bridge for agents to read WeChat articles."
 readme = "README.md"
@@ -17,8 +17,8 @@ dependencies = [
 ]
 
 [project.scripts]
-wechat-reader = "wechat_reader.cli:main"
-wechat-reader-openclaw = "wechat_reader.openclaw_tool:main"
+mp-article-bridge = "wechat_reader.cli:main"
+mp-article-bridge-openclaw = "wechat_reader.openclaw_tool:main"
 
 [tool.setuptools.packages.find]
 include = ["wechat_reader*"]

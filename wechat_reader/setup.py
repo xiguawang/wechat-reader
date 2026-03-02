@@ -49,7 +49,7 @@ def run_setup_diagnostics() -> dict[str, Any]:
 
 
 def format_setup_report(report: dict[str, Any]) -> str:
-    lines = ["wechat-reader setup", ""]
+    lines = ["mp-article-bridge setup", ""]
     chrome_candidates = report.get("chrome_candidates", [])
     lines.append("Detected browsers:")
     if chrome_candidates:

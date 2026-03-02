@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin OpenClaw-oriented wrapper around wechat-reader."""
+"""Thin OpenClaw-oriented wrapper around mp-article-bridge."""
 
 from __future__ import annotations
 

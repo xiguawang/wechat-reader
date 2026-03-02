@@ -293,7 +293,7 @@ def _connect_attach_runtime(
 ) -> BrowserRuntime:
     effective_cdp_url = cdp_url or discover_cdp_url()
     if not effective_cdp_url:
-        raise BridgeError("No attachable browser found. Run: wechat-reader setup")
+        raise BridgeError("No attachable browser found. Run: mp-article-bridge setup")
     deadline = time.monotonic() + 10.0
     last_error: Exception | None = None
     browser = None
@@ -353,7 +353,7 @@ def _launch_persistent_runtime(
 def _launch_managed_browser_process(*, channel: str, profile_dir: Path) -> str:
     executable = browser_executable_for_channel(channel)
     if not executable:
-        raise BridgeError(f"No browser executable found for channel '{channel}'. Run: wechat-reader setup")
+        raise BridgeError(f"No browser executable found for channel '{channel}'. Run: mp-article-bridge setup")
 
     profile_dir.mkdir(parents=True, exist_ok=True)
     running_cdp_url = discover_running_bridge_cdp_url(profile_dir)

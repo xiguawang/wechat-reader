@@ -1,4 +1,4 @@
-"""Public package exports for wechat-reader."""
+"""Public package exports for mp-article-bridge."""
 
 from .browser_bridge import (
     list_wechat_tabs,

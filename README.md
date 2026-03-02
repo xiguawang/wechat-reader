@@ -1,10 +1,10 @@
-# wechat-reader
+# mp-article-bridge
 
 Local browser bridge for agents to read WeChat Official Account articles from an authenticated browser session.
 
 ## What This Is
 
-`wechat-reader` is not a generic "bypass WeChat anti-bot" scraper.
+`mp-article-bridge` is not a generic "bypass WeChat anti-bot" scraper.
 
 It is a local bridge that helps AI agents and automation tools:
 
@@ -148,7 +148,7 @@ python -m wechat_reader read "https://mp.weixin.qq.com/s?..." \
 
 If WeChat blocks the page, the command will wait on the same page for up to 90 seconds so the user can complete verification in the browser.
 
-If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptcha?...&target_url=...`, `wechat-reader` will unwrap it to the real article URL before matching tabs or navigating. This avoids sending an already-verified browser tab back to the captcha entry page.
+If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptcha?...&target_url=...`, `mp-article-bridge` will unwrap it to the real article URL before matching tabs or navigating. This avoids sending an already-verified browser tab back to the captcha entry page.
 
 ### 4. Attach to an existing browser
 
@@ -234,7 +234,7 @@ If the requested URL is a captcha wrapper link and the corresponding real articl
 
 ### `launch`
 
-Launch or reuse a managed Chrome/Chromium bridge browser using a persistent profile controlled by `wechat-reader`.
+Launch or reuse a managed Chrome/Chromium bridge browser using a persistent profile controlled by `mp-article-bridge`.
 
 This is the recommended fallback when the user does not already run Chrome with a debug port.
 
@@ -265,7 +265,7 @@ Use it when you want the tool to return agent-friendly fields such as:
 Example:
 
 ```bash
-wechat-reader-openclaw \
+mp-article-bridge-openclaw \
   read \
   "https://mp.weixin.qq.com/s?..." \
   --strategy launch \
@@ -315,7 +315,7 @@ Blocked result:
 - `url_unwrapped`: whether a captcha wrapper URL was normalized to `target_url`
 - `runtime_strategy`: the strategy that actually ran, such as `attach` or `launch`
 - `reused_existing_tab`: whether an existing browser tab was reused
-- `navigation_performed`: whether `wechat-reader` had to navigate the page during this call
+- `navigation_performed`: whether `mp-article-bridge` had to navigate the page during this call
 
 These fields are useful when a link appears to "bounce" between a captcha page and the article page, or when you need to confirm whether attach mode reused the already-verified tab.
 
@@ -354,7 +354,7 @@ print(result.status, result.hint)
 The intended agent flow is:
 
 1. agent receives a WeChat article URL
-2. agent calls `wechat-reader open` or `wechat-reader read`
+2. agent calls `mp-article-bridge open` or `mp-article-bridge read`
 3. if status is `ok`, agent consumes content
 4. if status is `captcha_required` or `rate_limited`, agent tells the user to complete verification in the managed browser and retry
 
@@ -373,7 +373,7 @@ Pure mobile-side DOM access is usually not realistic because WeChat links often 
 The recommended mobile-friendly architecture is:
 
 - user sends the link from mobile
-- agent forwards the task to a desktop `wechat-reader` bridge
+- agent forwards the task to a desktop `mp-article-bridge` bridge
 - desktop browser handles verification and reading
 - agent returns the result to the mobile conversation
 
