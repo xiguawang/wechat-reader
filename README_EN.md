@@ -103,36 +103,6 @@ This shows the post-verification `status = ok` path, including wrapper URL unwra
 
 This shows the OpenClaw-oriented blocked path with `captcha_required` and `next_action = ask_user_to_verify`.
 
-### Real MCP Host Validation
-
-![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
-
-This shows the real Codex-host MCP validation path used to confirm `wechat_setup` can be reached through a configured stdio MCP server.
-
-## Current Status
-
-This repository is a working local bridge with the core browser, CLI, Python API, OpenClaw, and MCP paths implemented.
-
-Currently implemented and locally validated:
-
-- CLI commands: `setup`, `tabs`, `open`, `read`
-- browser strategies: `auto`, `attach`, `launch`, `playwright`
-- managed bridge profile under `~/.wechat-reader/profiles/default`
-- structured page status detection for WeChat pages
-- manual verification wait mode for blocked pages
-- stdio MCP server with tool-based access for agent runtimes
-- fresh virtualenv install validation
-
-Real-world validation so far:
-
-- the bridge browser can be launched or reused
-- real WeChat links can be opened and classified
-- blocked pages correctly return `captcha_required`
-- after manual verification, a real `wappoc_appmsgcaptcha` wrapper link was unwrapped to its article `target_url`
-- the real article body was successfully read through attach mode from the verified Chrome tab
-- the same validated read path also successfully saved markdown output
-- a real Codex-host MCP run successfully called `wechat_setup`
-
 ## MCP Server
 
 A stdio MCP server is included:
@@ -149,13 +119,6 @@ Currently exposed tools:
 - `wechat_read_current_tab`
 - `wechat_get_status`
 - `wechat_setup`
-
-Currently exposed resources:
-
-- `wechat-reader://setup`
-- `wechat-reader://tabs`
-- project `README.md`
-- OpenClaw integration `README.md`
 
 The server implements `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
 
@@ -398,31 +361,6 @@ The recommended mobile-friendly architecture is:
 - local CDP discovery can behave differently under restricted environments or sandboxes
 - CDP attach may fail with local `EPERM` errors inside a sandbox even when the same Chrome session works outside the sandbox
 - when validating agent integrations, prefer running the actual attach/read command outside restrictive sandboxes before treating CDP failures as product bugs
-
-## Public Release Readiness
-
-Before making the repository public, the minimum release bar should be:
-
-- clear English and Chinese README coverage
-- a committed open-source license file
-- passing CI plus passing local tests
-- explicit documentation of limitations and verification-dependent flows
-- at least one real-world validated read path from verification to extraction
-
-Current state:
-
-- English README: present
-- Chinese README: present
-- LICENSE file: present
-- GitHub Actions CI: present
-- local unit tests and compile check: passing
-- real local verification and markdown export: completed
-- real MCP host validation: completed
-- fresh virtualenv install validation: completed
-
-Still recommended before broad promotion:
-
-- decide whether the repository should stay private a little longer or move to public visibility
 
 ## Development
 
