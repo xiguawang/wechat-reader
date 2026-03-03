@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wechat-reader"
 version = "0.1.0"
-description = "CLI, MCP server, and Python API for reading WeChat articles from a verified browser session."
+description = "面向 AI Agent 的微信公众号文章阅读工具，提供 CLI、MCP server 和 Python API。"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

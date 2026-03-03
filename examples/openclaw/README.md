@@ -1,47 +1,24 @@
-# OpenClaw Integration Example
+# OpenClaw 集成示例
 
-This example shows how to use `wechat-reader` as a local bridge for an OpenClaw-style agent.
+本示例展示如何将 `wechat-reader` 作为本地桥接工具接入 OpenClaw 风格的 Agent。
 
-Two entrypoints are included:
+提供两个入口：
 
-- `wechat-reader-openclaw`: the stable exec wrapper intended for real agent integration
-- `examples/openclaw/openclaw_wechat_bridge.py`: a source-tree example script that mirrors the same behavior
+- `wechat-reader-openclaw`：稳定的可执行入口，用于实际 Agent 集成
+- `examples/openclaw/openclaw_wechat_bridge.py`：源码级示例脚本，逻辑相同
 
-## Goal
+## 目标
 
-When the agent sees an `mp.weixin.qq.com` URL, it should:
+当 Agent 遇到 `mp.weixin.qq.com` 链接时，应该：
 
-1. avoid direct HTTP fetch
-2. open or reuse a visible bridge browser
-3. read the page if possible
-4. return a structured agent action when WeChat blocks the page
+1. 不直接用 HTTP 抓取
+2. 打开或复用一个可见的桥接浏览器
+3. 如果页面可读，返回文章内容
+4. 如果微信拦截了页面，返回结构化的下一步动作
 
-## Recommended Flow
+## 推荐流程
 
-### 1. First attempt: read directly through the bridge
-
-```bash
-wechat-reader-openclaw \
-  read \
-  "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --wait-for-manual-verify 90
-```
-
-Typical responses:
-
-- `next_action=return_article`: the agent can summarize or quote the article body
-- `next_action=ask_user_to_verify`: the agent should tell the user to complete verification in the visible bridge browser, then retry
-- `next_action=ask_user_to_retry`: the agent should tell the user WeChat rate-limited the page
-- `next_action=guide_browser_setup`: the agent should guide the user through `wechat-reader setup`
-
-### 2. If the page is blocked
-
-Tell the user something like:
-
-> I opened the WeChat article in the bridge browser, but WeChat requires verification first. Complete the verification in the visible browser window, then ask me to retry reading.
-
-### 3. Retry the read
+### 1. 首次尝试：通过桥接浏览器直接读取
 
 ```bash
 wechat-reader-openclaw \
@@ -51,107 +28,130 @@ wechat-reader-openclaw \
   --wait-for-manual-verify 90
 ```
 
-## Why This Wrapper Exists
+典型返回：
 
-`wechat-reader` returns detailed page states such as `captcha_required` and `article_not_rendered`.
+- `next_action=return_article`：Agent 可以直接摘要或引用文章正文
+- `next_action=ask_user_to_verify`：Agent 应提示用户在桥接浏览器中完成验证，然后重试
+- `next_action=ask_user_to_retry`：Agent 应告知用户微信限频，稍后再试
+- `next_action=guide_browser_setup`：Agent 应引导用户执行 `wechat-reader setup`
 
-OpenClaw usually wants a higher-level decision model:
+### 2. 如果页面被拦截
 
-- what should the agent do next
-- what should the agent say to the user
-- whether article content is available right now
+告诉用户类似这样的话：
 
-This wrapper converts `wechat-reader` results into:
+> 我在桥接浏览器里打开了这篇微信文章，但微信要求先完成验证。请在弹出的浏览器窗口中完成验证，然后让我重试。
+
+### 3. 重试读取
+
+```bash
+wechat-reader-openclaw \
+  read \
+  "https://mp.weixin.qq.com/s?..." \
+  --strategy launch \
+  --wait-for-manual-verify 90
+```
+
+## 为什么需要这个 Wrapper
+
+`wechat-reader` 返回的是详细的页面状态，比如 `captcha_required`、`article_not_rendered`。
+
+OpenClaw 通常需要更高层的决策模型：
+
+- Agent 下一步该做什么
+- Agent 应该对用户说什么
+- 文章内容现在是否可用
+
+这个 Wrapper 将 `wechat-reader` 的结果转换为：
 
 - `status`
 - `next_action`
 - `user_message`
-- `article` on success
+- 成功时附带 `article`
 
-Unlike the general CLI, this wrapper always exits with code `0` after argument parsing, even for blocked or rate-limited pages. That keeps OpenClaw from treating normal WeChat states as hard command failures.
+与通用 CLI 不同，这个 Wrapper 在参数解析之后始终以退出码 `0` 结束，即使页面被拦截或限频。这样 OpenClaw 不会把正常的微信页面状态当作命令失败。
 
-## Example JSON
+## JSON 示例
 
-Blocked page:
+页面被拦截：
 
 ```json
 {
   "tool": "wechat-reader",
   "status": "captcha_required",
   "next_action": "ask_user_to_verify",
-  "user_message": "Please complete verification in the browser, then retry."
+  "user_message": "请在浏览器中完成验证，然后重试。"
 }
 ```
 
-Successful read:
+成功读取：
 
 ```json
 {
   "tool": "wechat-reader",
   "status": "ok",
   "next_action": "return_article",
-  "user_message": "Read WeChat article: Example Title",
+  "user_message": "已读取微信文章：示例标题",
   "article": {
     "url": "https://mp.weixin.qq.com/...",
-    "title": "Example Title",
-    "author": "Example Author",
+    "title": "示例标题",
+    "author": "示例作者",
     "content": "..."
   }
 }
 ```
 
-## OpenClaw Routing Suggestion
+## OpenClaw 路由建议
 
-Pseudo-flow:
+伪代码流程：
 
 ```text
 if url.host == "mp.weixin.qq.com":
     result = run wechat-reader-openclaw read <url> --strategy launch --wait-for-manual-verify 90
     if result.next_action == "return_article":
-        answer from article.content
+        用 article.content 回答用户
     elif result.next_action == "ask_user_to_verify":
-        ask the user to complete verification in the bridge browser
+        提示用户在桥接浏览器中完成验证
     elif result.next_action == "guide_browser_setup":
-        show setup guidance
+        展示环境配置引导
     else:
-        present result.user_message
+        展示 result.user_message
 ```
 
-## JSON Stdin Mode
+## JSON Stdin 模式
 
-For tool runners that prefer stdin payloads over argv:
+如果工具调度器更适合通过 stdin 传参：
 
 ```bash
 printf '%s\n' '{"url":"https://mp.weixin.qq.com/s?...","strategy":"launch","wait_for_manual_verify":90}' \
   | wechat-reader-openclaw read --stdin-json
 ```
 
-## Schema And Setup
+## Schema 和环境检查
 
-Print the wrapper schema:
+打印 Wrapper schema：
 
 ```bash
 wechat-reader-openclaw schema --pretty
 ```
 
-Run setup diagnostics in wrapper form:
+运行环境诊断：
 
 ```bash
 wechat-reader-openclaw setup --pretty
 ```
 
-## Notes
+## 注意事项
 
-- Use `launch` as the default OpenClaw strategy unless the user already exposes a CDP browser.
-- Keep the browser visible. Hidden or fresh automation sessions are more likely to trigger WeChat checks.
-- Treat `captcha_required` as a normal state transition, not a fatal tool error.
+- 默认使用 `launch` 策略，除非用户已经开放了 CDP 浏览器端口
+- 保持浏览器可见。隐藏或全新的自动化会话更容易触发微信风控
+- 把 `captcha_required` 当作正常的状态流转，而不是致命错误
 
-## Chat-Facing Prompt Suggestions
+## Agent 话术建议
 
-Suggested user-facing copy by `next_action`:
+按 `next_action` 推荐的用户面对话术：
 
-- `return_article`: "I read the WeChat article successfully. I can now summarize it or answer questions from the article body."
-- `ask_user_to_verify`: "I opened the WeChat article in the bridge browser, but WeChat still requires verification. Complete verification in the visible browser window, then ask me to retry."
-- `ask_user_to_retry`: "WeChat is temporarily rate-limiting this page. Wait a bit and ask me to retry."
-- `guide_browser_setup`: "The local browser bridge is not ready yet. Run `wechat-reader setup`, or start Chrome with a reachable CDP port, then retry."
-- `install_dependencies`: "The local bridge is missing runtime dependencies. Install Playwright and retry the command."
+- `return_article`：「已成功读取微信文章，可以为你摘要或回答相关问题。」
+- `ask_user_to_verify`：「我在桥接浏览器里打开了这篇微信文章，但微信要求先验证。请在浏览器窗口中完成验证，然后让我重试。」
+- `ask_user_to_retry`：「微信暂时限频了这个页面，稍等一会儿再让我重试。」
+- `guide_browser_setup`：「本地桥接浏览器还没准备好。请运行 `wechat-reader setup`，或启动带 CDP 端口的 Chrome，然后重试。」
+- `install_dependencies`：「本地桥接缺少运行时依赖。请安装 Playwright 后重试。」
