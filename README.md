@@ -87,7 +87,7 @@ print(result.status, result.title)
 
 ## 截图
 
-下面三张图对应当前最重要的三条路径：
+
 
 ### 验证完成后的成功读取
 
@@ -96,30 +96,6 @@ print(result.status, result.title)
 ### 需要用户先完成验证的阻塞状态
 
 ![Captcha required screenshot](docs/screenshots/captcha-required.svg)
-
-### 真实 MCP host 接入验证
-
-![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
-
-## 当前状态
-
-当前仓库已经具备一条可工作的主链路：
-
-- CLI：`setup`、`tabs`、`open`、`read`
-- 浏览器策略：`auto`、`attach`、`launch`、`playwright`
-- Python API
-- OpenClaw wrapper
-- stdio MCP server
-- GitHub Actions CI
-- fresh virtualenv 安装验证
-
-已经完成的本地真实验证包括：
-
-- 识别真实微信验证页并返回 `captcha_required`
-- 用户手动完成验证后，复用已验证的 Chrome tab 读取正文
-- 自动将 `wappoc_appmsgcaptcha?...target_url=...` 解包为真实文章 URL
-- 成功保存 markdown 输出
-- 真实 Codex host 调用 `wechat_setup`
 
 ## MCP Server
 
@@ -137,13 +113,6 @@ wechat-reader-mcp
 - `wechat_read_current_tab`
 - `wechat_get_status`
 - `wechat_setup`
-
-当前暴露的 resources：
-
-- `wechat-reader://setup`
-- `wechat-reader://tabs`
-- 项目 `README.md`
-- OpenClaw 集成 `README.md`
 
 ## CLI
 
