@@ -4,6 +4,26 @@ CLI + MCP server + Python API for reading WeChat Official Account articles from 
 
 `wechat-reader` is a WeChat article reader for AI agents and local automation. It reuses a real browser session when possible, returns structured page states such as `ok` and `captcha_required`, and exposes the same local bridge through CLI, MCP, and Python.
 
+## Who Is This For
+
+If your AI agent or automation pipeline needs to **reliably** read WeChat Official Account (公众号) articles, this tool is for you.
+
+**The problem:** WeChat article URLs are notoriously unfriendly to programmatic access. Standard HTTP fetching (`curl`, `requests`, `web_fetch`) often returns blank pages, CAPTCHAs, or login walls — and fails silently, so your agent doesn't even know it got nothing useful.
+
+**What this tool does differently:**
+- Uses a real browser session to read articles the way a human would
+- Returns structured statuses (`ok`, `captcha_required`, `rate_limited`) so your agent knows exactly what happened
+- When verification is needed, tells the agent to ask the user — instead of silently returning garbage
+
+**Typical use cases:**
+- AI agent workflows that process WeChat article links (summarization, translation, knowledge base ingestion)
+- Content monitoring or competitive analysis pipelines
+- Any automation where a WeChat link appears and needs to be read reliably
+
+**Not for you if:** you only read an occasional WeChat article — just copy-paste the text. This tool is for when WeChat links show up in your automated pipeline and need to work every time.
+
+## Interfaces
+
 Use it through:
 
 - `wechat-reader`: open, read, inspect, and export article content from a visible browser
