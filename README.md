@@ -1,40 +1,40 @@
 # wechat-reader
 
-CLI + MCP server + Python API for reading WeChat Official Account articles from a verified browser session.
+面向 AI Agent 的微信公众号阅读工具，提供 CLI、MCP server 和 Python API，可复用用户已登录、已验证的浏览器会话。
 
-`wechat-reader` is a WeChat article reader for AI agents and local automation. It reuses a real browser session when possible, returns structured page states such as `ok` and `captcha_required`, and exposes the same local bridge through CLI, MCP, and Python.
+`wechat-reader` 适合这样的场景：用户已经有一个真实浏览器窗口可以手动完成微信验证，而 agent 需要一个结构化、可重试、可诊断的阅读接口。
 
-## Who Is This For
+## 谁需要这个工具
 
-If your AI agent or automation pipeline needs to **reliably** read WeChat Official Account (公众号) articles, this tool is for you.
+如果你的 AI agent 或自动化流程需要**可靠地**读取微信公众号文章，这个工具就是为你准备的。
 
-**The problem:** WeChat article URLs are notoriously unfriendly to programmatic access. Standard HTTP fetching (`curl`, `requests`, `web_fetch`) often returns blank pages, CAPTCHAs, or login walls — and fails silently, so your agent doesn't even know it got nothing useful.
+**问题：** 微信文章链接对程序化访问极不友好。用 `curl`、`requests`、`web_fetch` 直接抓取，经常拿到空白页、验证码页或登录墙——而且是静默失败，你的 agent 甚至不知道自己拿到的是垃圾。
 
-**What this tool does differently:**
-- Uses a real browser session to read articles the way a human would
-- Returns structured statuses (`ok`, `captcha_required`, `rate_limited`) so your agent knows exactly what happened
-- When verification is needed, tells the agent to ask the user — instead of silently returning garbage
+**这个工具的不同之处：**
+- 复用真实浏览器会话，像人一样读取文章
+- 返回结构化状态（`ok`、`captcha_required`、`rate_limited`），agent 知道到底发生了什么
+- 需要验证时，告诉 agent 去请求用户操作——而不是静默返回无用内容
 
-**Typical use cases:**
-- AI agent workflows that process WeChat article links (summarization, translation, knowledge base ingestion)
-- Content monitoring or competitive analysis pipelines
-- Any automation where a WeChat link appears and needs to be read reliably
+**典型使用场景：**
+- AI agent 工作流中处理微信文章链接（摘要、翻译、知识库入库）
+- 内容监控或竞品分析流水线
+- 任何自动化流程中出现微信链接、需要稳定读取的场景
 
-**Not for you if:** you only read an occasional WeChat article — just copy-paste the text. This tool is for when WeChat links show up in your automated pipeline and need to work every time.
+**不适合你的情况：** 偶尔读一篇微信文章——直接复制粘贴更快。这个工具是为微信链接频繁出现在自动化流程中、需要每次都能读通的场景设计的。
 
-## Interfaces
+> [English version](./README_EN.md)
 
-Use it through:
+## 使用入口
 
-- `wechat-reader`: open, read, inspect, and export article content from a visible browser
-- `wechat-reader-mcp`: expose the bridge as an MCP server for Claude, Codex, and other agent runtimes
-- `wechat_reader`: import the Python API directly inside your own tooling
+- `wechat-reader`：直接在终端里读取、打开、诊断微信文章页面
+- `wechat-reader-mcp`：把同样的能力暴露给 Claude、Codex 等支持 MCP 的宿主
+- `wechat_reader`：在你自己的 Python 工具里直接调用
 
-## Quick Start
+## 快速开始
 
-Python 3.11+ is required.
+要求 Python 3.11+。
 
-### Install
+### 安装
 
 ```bash
 git clone https://github.com/xiguawang/wechat-reader.git
@@ -43,32 +43,32 @@ uv sync
 uv run playwright install chromium
 ```
 
-If you do not use `uv`, the fallback is:
+如果你不使用 `uv`，也可以退回到：
 
 ```bash
 pip install -e .
 python -m playwright install chromium
 ```
 
-### Read an article through the CLI
+### 通过 CLI 读取文章
 
 ```bash
 wechat-reader read "https://mp.weixin.qq.com/s?..." --json
 ```
 
-### Diagnose the local browser environment
+### 检查本机浏览器环境
 
 ```bash
 wechat-reader setup
 ```
 
-### Start the MCP server
+### 启动 MCP Server
 
 ```bash
 wechat-reader-mcp
 ```
 
-### Use the Python API
+### Python API
 
 ```python
 from wechat_reader import read_article_sync
@@ -77,69 +77,59 @@ result = read_article_sync("https://mp.weixin.qq.com/s?...", strategy="auto", ti
 print(result.status, result.title)
 ```
 
-## What You Get
+## 你会得到什么
 
-- browser reuse via `attach`, `launch`, `playwright`, and `auto`
-- structured statuses such as `ok`, `captcha_required`, `rate_limited`, and `browser_not_ready`
-- markdown and JSON output from the CLI
-- an MCP server with tools and resources
-- a Python API for direct integration
+- `attach`、`launch`、`playwright`、`auto` 四种浏览器策略
+- `ok`、`captcha_required`、`rate_limited` 等结构化状态
+- CLI 下的 JSON / Markdown 输出
+- 可直接接入 agent 的 MCP server
+- 可嵌入你自己工具链的 Python API
 
-## Screenshots
+## 截图
 
-Representative terminal snapshots from local validation:
+下面三张图对应当前最重要的三条路径：
 
-### Successful Read After Verification
+### 验证完成后的成功读取
 
 ![Successful read screenshot](docs/screenshots/read-ok.svg)
 
-This shows the post-verification `status = ok` path, including wrapper URL unwrapping and tab reuse.
-
-### Blocked Page Requiring Manual Verification
+### 需要用户先完成验证的阻塞状态
 
 ![Captcha required screenshot](docs/screenshots/captcha-required.svg)
 
-This shows the OpenClaw-oriented blocked path with `captcha_required` and `next_action = ask_user_to_verify`.
-
-### Real MCP Host Validation
+### 真实 MCP host 接入验证
 
 ![MCP validation screenshot](docs/screenshots/mcp-host-validation.svg)
 
-This shows the real Codex-host MCP validation path used to confirm `wechat_setup` can be reached through a configured stdio MCP server.
+## 当前状态
 
-## Current Status
+当前仓库已经具备一条可工作的主链路：
 
-This repository is a working local bridge with the core browser, CLI, Python API, OpenClaw, and MCP paths implemented.
+- CLI：`setup`、`tabs`、`open`、`read`
+- 浏览器策略：`auto`、`attach`、`launch`、`playwright`
+- Python API
+- OpenClaw wrapper
+- stdio MCP server
+- GitHub Actions CI
+- fresh virtualenv 安装验证
 
-Currently implemented and locally validated:
+已经完成的本地真实验证包括：
 
-- CLI commands: `setup`, `tabs`, `open`, `read`
-- browser strategies: `auto`, `attach`, `launch`, `playwright`
-- managed bridge profile under `~/.wechat-reader/profiles/default`
-- structured page status detection for WeChat pages
-- manual verification wait mode for blocked pages
-- stdio MCP server with tool-based access for agent runtimes
-- fresh virtualenv install validation
-
-Real-world validation so far:
-
-- the bridge browser can be launched or reused
-- real WeChat links can be opened and classified
-- blocked pages correctly return `captcha_required`
-- after manual verification, a real `wappoc_appmsgcaptcha` wrapper link was unwrapped to its article `target_url`
-- the real article body was successfully read through attach mode from the verified Chrome tab
-- the same validated read path also successfully saved markdown output
-- a real Codex-host MCP run successfully called `wechat_setup`
+- 识别真实微信验证页并返回 `captcha_required`
+- 用户手动完成验证后，复用已验证的 Chrome tab 读取正文
+- 自动将 `wappoc_appmsgcaptcha?...target_url=...` 解包为真实文章 URL
+- 成功保存 markdown 输出
+- 真实 Codex host 调用 `wechat_setup`
 
 ## MCP Server
 
-A stdio MCP server is included:
+项目内置了一个 stdio MCP server：
 
 ```bash
 wechat-reader-mcp
 ```
 
-Currently exposed tools:
+当前暴露的 tools：
 
 - `wechat_read_article`
 - `wechat_open_article`
@@ -148,55 +138,16 @@ Currently exposed tools:
 - `wechat_get_status`
 - `wechat_setup`
 
-Currently exposed resources:
+当前暴露的 resources：
 
 - `wechat-reader://setup`
 - `wechat-reader://tabs`
-- project `README.md`
-- OpenClaw integration `README.md`
-
-The server implements `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, and `ping`, then delegates to the same local bridge logic used by the CLI and Python API.
-
-### Example MCP Client Config
-
-For MCP clients that launch stdio servers from JSON config:
-
-```json
-{
-  "mcpServers": {
-    "wechat-reader": {
-      "command": "wechat-reader-mcp",
-      "args": []
-    }
-  }
-}
-```
-
-If you are running directly from the source tree instead of an installed package:
-
-```json
-{
-  "mcpServers": {
-    "wechat-reader": {
-      "command": "python3",
-      "args": ["-m", "wechat_reader.mcp_server"],
-      "cwd": "/path/to/wechat-reader"
-    }
-  }
-}
-```
-
-Recommended first checks after connecting:
-
-1. call `wechat_setup`
-2. call `wechat_list_tabs`
-3. call `wechat_read_article` with a known WeChat article URL or wrapper URL
+- 项目 `README.md`
+- OpenClaw 集成 `README.md`
 
 ## CLI
 
 ### `setup`
-
-Diagnose prerequisites and print recommended launch guidance.
 
 ```bash
 wechat-reader setup
@@ -205,16 +156,12 @@ wechat-reader setup --json
 
 ### `tabs`
 
-List attachable tabs from a browser exposing CDP.
-
 ```bash
 wechat-reader tabs --wechat-only
 wechat-reader tabs --wechat-only --json
 ```
 
 ### `open`
-
-Open a URL in a managed or attached browser and report page status without requiring full article extraction.
 
 ```bash
 wechat-reader open "https://mp.weixin.qq.com/s?..." \
@@ -225,8 +172,6 @@ wechat-reader open "https://mp.weixin.qq.com/s?..." \
 
 ### `read`
 
-High-level command: reuse an existing matching tab if possible, otherwise navigate according to strategy, then attempt extraction.
-
 ```bash
 wechat-reader read "https://mp.weixin.qq.com/s?..." \
   --strategy auto \
@@ -234,217 +179,36 @@ wechat-reader read "https://mp.weixin.qq.com/s?..." \
   --json
 ```
 
-Save markdown on success:
+如果输入的是微信验证包装链接，例如 `mp/wappoc_appmsgcaptcha?...&target_url=...`，工具会先解包到真实文章 URL，再做 tab 匹配和导航，避免把已验证页面重新带回验证码入口。
 
-```bash
-wechat-reader read "https://mp.weixin.qq.com/s?..." \
-  --output ./articles
-```
+## 限制说明
 
-If the input URL is a WeChat verification wrapper such as `mp/wappoc_appmsgcaptcha?...&target_url=...`, `wechat-reader` will unwrap it to the real article URL before matching tabs or navigating. This avoids sending an already-verified browser tab back to the captcha entry page.
+`wechat-reader` 不是一个承诺“稳定绕过微信风控”的通用抓取器。
 
-## Strategy Model
+- 微信风控可能随时变化
+- 某些链接仍然需要用户先手动完成验证
+- “操作频繁”是真实运行状态，不是这个工具能彻底消除的问题
+- 受限沙箱环境下，CDP attach 可能出现本地 `EPERM`
+- 移动端更适合“移动端发起，桌面端 bridge 执行”的模式
 
-### `auto`
+## 对外公开前的状态
 
-Recommended default:
+当前已经达到“可公开仓库并让技术用户试用”的程度，但还不算大范围宣传级别的成熟产品。
 
-1. try attach
-2. fall back to managed launch
-3. fall back to Playwright persistent mode
+已经具备：
 
-### `attach`
+- 核心功能可用
+- 本地真实验证跑通
+- 单元测试通过
+- CI 已配置
+- MCP 基础接入已完成
+- 真实 MCP host 验证已完成
+- fresh virtualenv 安装验证已完成
 
-Only connect to an existing browser CDP endpoint. If none is available, fail with a structured `browser_not_found` status.
+仍建议继续补的内容：
 
-If the requested URL is a captcha wrapper link and the corresponding real article tab already exists, attach mode will reuse the real article tab instead of navigating back to the wrapper URL.
+- 决定是否继续保持私有，还是转公开
 
-### `launch`
-
-Launch or reuse a managed Chrome/Chromium bridge browser using a persistent profile controlled by `wechat-reader`.
-
-This is the recommended fallback when the user does not already run Chrome with a debug port.
-
-### `playwright`
-
-Explicit compatibility fallback. Useful for development or non-Chrome environments, but more likely to trigger WeChat anti-bot checks.
-
-## Key Options
-
-- `--timeout <seconds>`: article read timeout, default `30`
-- `--wait-for-manual-verify <seconds>`: wait on blocked pages for user verification
-- `--cdp-url <url>`: connect to an existing debug browser
-- `--channel chrome|chromium`: choose browser family for launch
-- `--profile-dir <path>`: explicit bridge profile directory
-- `--profile-name <name>`: named profile under `~/.wechat-reader/profiles/`
-- `--ephemeral`: use a temporary profile for debugging only
-
-## Output Model
-
-Successful result:
-
-```json
-{
-  "status": "ok",
-  "url": "https://mp.weixin.qq.com/...",
-  "title": "Article title",
-  "author": "Author",
-  "content": "Article body",
-  "fetched_at": "2026-03-02T00:00:00Z",
-  "metadata": {
-    "requested_url": "https://mp.weixin.qq.com/mp/wappoc_appmsgcaptcha?...",
-    "effective_url": "https://mp.weixin.qq.com/s?...",
-    "url_unwrapped": true,
-    "runtime_strategy": "attach",
-    "cdp_url": "http://127.0.0.1:9222",
-    "reused_existing_tab": true,
-    "navigation_performed": false
-  }
-}
-```
-
-Blocked result:
-
-```json
-{
-  "status": "captcha_required",
-  "url": "https://mp.weixin.qq.com/...",
-  "hint": "Please complete verification in the browser, then retry."
-}
-```
-
-### Metadata Notes
-
-- `requested_url`: the raw input URL the caller passed in
-- `effective_url`: the URL actually used for tab matching and navigation after wrapper unwrapping
-- `url_unwrapped`: whether a captcha wrapper URL was normalized to `target_url`
-- `runtime_strategy`: the strategy that actually ran, such as `attach` or `launch`
-- `reused_existing_tab`: whether an existing browser tab was reused
-- `navigation_performed`: whether `wechat-reader` had to navigate the page during this call
-
-## Python API
-
-Public exports:
-
-```python
-from wechat_reader import (
-    list_wechat_tabs,
-    list_wechat_tabs_sync,
-    open_article,
-    open_article_sync,
-    read_article,
-    read_article_sync,
-)
-```
-
-Example:
-
-```python
-from wechat_reader import read_article_sync
-
-result = read_article_sync(
-    "https://mp.weixin.qq.com/s?...",
-    strategy="launch",
-    timeout=30,
-    wait_for_manual_verify=90,
-)
-
-print(result.status, result.hint)
-```
-
-## OpenClaw Example
-
-An OpenClaw-oriented wrapper is included under [examples/openclaw/README.md](./examples/openclaw/README.md).
-
-Use it when you want the tool to return agent-friendly fields such as:
-
-- `next_action`
-- `user_message`
-- `article` on success
-
-Example:
-
-```bash
-wechat-reader-openclaw \
-  read \
-  "https://mp.weixin.qq.com/s?..." \
-  --strategy launch \
-  --wait-for-manual-verify 90
-```
-
-The OpenClaw wrapper is implemented in [wechat_reader/openclaw_tool.py](./wechat_reader/openclaw_tool.py) and is intended to be the stable executable interface for agent runtimes.
-
-## Mobile-Initiated Workflows
-
-Pure mobile-side DOM access is usually not realistic because WeChat links often open inside mobile WebViews that do not expose stable debugging interfaces.
-
-The recommended mobile-friendly architecture is:
-
-- user sends the link from mobile
-- agent forwards the task to a desktop `wechat-reader` bridge
-- desktop browser handles verification and reading
-- agent returns the result to the mobile conversation
-
-## Known Limitations
-
-`wechat-reader` is not a generic "bypass WeChat anti-bot" scraper.
-
-- WeChat anti-bot behavior can change without warning
-- some links may still require repeated manual verification
-- "operation too frequent" is a real runtime condition, not something this tool can guarantee away
-- a visible browser plus persistent profile improves usability, but does not guarantee article access
-- local CDP discovery can behave differently under restricted environments or sandboxes
-- CDP attach may fail with local `EPERM` errors inside a sandbox even when the same Chrome session works outside the sandbox
-- when validating agent integrations, prefer running the actual attach/read command outside restrictive sandboxes before treating CDP failures as product bugs
-
-## Public Release Readiness
-
-Before making the repository public, the minimum release bar should be:
-
-- clear English and Chinese README coverage
-- a committed open-source license file
-- passing CI plus passing local tests
-- explicit documentation of limitations and verification-dependent flows
-- at least one real-world validated read path from verification to extraction
-
-Current state:
-
-- English README: present
-- Chinese README: present
-- LICENSE file: present
-- GitHub Actions CI: present
-- local unit tests and compile check: passing
-- real local verification and markdown export: completed
-- real MCP host validation: completed
-- fresh virtualenv install validation: completed
-
-Still recommended before broad promotion:
-
-- decide whether the repository should stay private a little longer or move to public visibility
-
-## Development
-
-Run tests:
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-Basic CLI check:
-
-```bash
-wechat-reader setup
-wechat-reader read --help
-```
-
-## Roadmap
-
-- improve managed bridge discovery and reuse
-- add clearer OpenClaw integration examples
-- add screenshots and public-facing walkthroughs
-- improve recovery flow after manual verification succeeds
-- add better troubleshooting docs and platform-specific setup guidance
-
-## License
+## 许可证
 
 MIT
