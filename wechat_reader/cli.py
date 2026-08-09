@@ -64,6 +64,14 @@ def _exit_code_for_status(status: PageStatus) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows consoles default to GBK/cp936, which cannot encode all Unicode
+    # characters (e.g. \xa0 non-breaking spaces common in article bodies).
+    # Force UTF-8 so printing article content never raises UnicodeEncodeError.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
