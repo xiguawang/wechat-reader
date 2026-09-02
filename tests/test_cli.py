@@ -1,5 +1,6 @@
 import io
 import json
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -8,6 +9,36 @@ from unittest.mock import patch
 
 from wechat_reader.cli import main
 from wechat_reader.models import ArticleResult, BrowserTab, PageStatus
+
+
+class _RecordingTextStream:
+    """Fake console stream: records reconfigure() calls and encodes writes with
+    its current settings, so an unreconfigured cp936 stream raises
+    UnicodeEncodeError exactly like a real Chinese Windows terminal."""
+
+    def __init__(self, encoding: str = "cp936", errors: str = "strict") -> None:
+        self.encoding = encoding
+        self._errors = errors
+        self._buffer = io.BytesIO()
+        self.reconfigure_calls: list[dict[str, str | None]] = []
+
+    def reconfigure(self, *, encoding: str | None = None, errors: str | None = None) -> None:
+        self.reconfigure_calls.append({"encoding": encoding, "errors": errors})
+        if encoding is not None:
+            self.encoding = encoding
+        if errors is not None:
+            self._errors = errors
+
+    def write(self, text: str) -> int:
+        data = text.encode(self.encoding, self._errors)
+        self._buffer.write(data)
+        return len(data)
+
+    def flush(self) -> None:
+        pass
+
+    def getvalue(self) -> str:
+        return self._buffer.getvalue().decode(self.encoding, "replace")
 
 
 class CliTests(unittest.TestCase):
@@ -103,6 +134,56 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(json.loads(stdout.getvalue()), report)
+
+
+    def test_read_on_windows_reconfigures_streams_to_utf8(self) -> None:
+        result = ArticleResult(
+            status=PageStatus.OK,
+            url="https://mp.weixin.qq.com/s?...",
+            title="标题\xa0含\U0001f642emoji",
+            author="作者",
+            content="正文\xa0测试",
+            fetched_at="2026-03-02T00:00:00Z",
+        )
+        stdout = _RecordingTextStream()
+        stderr = _RecordingTextStream()
+
+        with (
+            patch.object(sys, "platform", "win32"),
+            patch("wechat_reader.cli.read_article_sync", return_value=result),
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            exit_code = main(["read", "https://mp.weixin.qq.com/s?..."])
+
+        self.assertEqual(exit_code, 0)
+        expected_calls = [{"encoding": "utf-8", "errors": "replace"}]
+        self.assertEqual(stdout.reconfigure_calls, expected_calls)
+        self.assertEqual(stderr.reconfigure_calls, expected_calls)
+        output = stdout.getvalue()
+        self.assertIn("正文\xa0测试", output)
+        self.assertIn("\U0001f642", output)
+
+    def test_read_off_windows_keeps_user_stream_encoding(self) -> None:
+        result = ArticleResult(
+            status=PageStatus.OK,
+            url="https://mp.weixin.qq.com/s?...",
+            title="Example",
+            author="Author",
+            content="Body \xa0 with user-chosen utf-8 stream",
+            fetched_at="2026-03-02T00:00:00Z",
+        )
+        stdout = _RecordingTextStream(encoding="utf-8")
+
+        with (
+            patch.object(sys, "platform", "darwin"),
+            patch("wechat_reader.cli.read_article_sync", return_value=result),
+            redirect_stdout(stdout),
+        ):
+            exit_code = main(["read", "https://mp.weixin.qq.com/s?..."])
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stdout.reconfigure_calls, [])
 
 
 if __name__ == "__main__":
