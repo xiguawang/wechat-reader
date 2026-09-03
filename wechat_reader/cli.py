@@ -64,6 +64,18 @@ def _exit_code_for_status(status: PageStatus) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows consoles default to GBK/cp936, which cannot encode all Unicode
+    # characters (e.g. \xa0 non-breaking spaces common in article bodies).
+    # Force UTF-8 there so printing article content does not raise
+    # UnicodeEncodeError; errors="replace" also covers lone surrogates that
+    # even UTF-8 cannot encode. Other platforms keep the user's locale and
+    # PYTHONIOENCODING untouched. Note: this makes redirected stdout UTF-8
+    # even on Chinese Windows, so pipe output to files opened as UTF-8.
+    if sys.platform == "win32":
+        for stream in (sys.stdout, sys.stderr):
+            if hasattr(stream, "reconfigure"):
+                stream.reconfigure(encoding="utf-8", errors="replace")
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
