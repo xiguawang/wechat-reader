@@ -9,36 +9,7 @@ from unittest.mock import patch
 
 from wechat_reader.cli import main
 from wechat_reader.models import ArticleResult, BrowserTab, PageStatus
-
-
-class _RecordingTextStream:
-    """Fake console stream: records reconfigure() calls and encodes writes with
-    its current settings, so an unreconfigured cp936 stream raises
-    UnicodeEncodeError exactly like a real Chinese Windows terminal."""
-
-    def __init__(self, encoding: str = "cp936", errors: str = "strict") -> None:
-        self.encoding = encoding
-        self._errors = errors
-        self._buffer = io.BytesIO()
-        self.reconfigure_calls: list[dict[str, str | None]] = []
-
-    def reconfigure(self, *, encoding: str | None = None, errors: str | None = None) -> None:
-        self.reconfigure_calls.append({"encoding": encoding, "errors": errors})
-        if encoding is not None:
-            self.encoding = encoding
-        if errors is not None:
-            self._errors = errors
-
-    def write(self, text: str) -> int:
-        data = text.encode(self.encoding, self._errors)
-        self._buffer.write(data)
-        return len(data)
-
-    def flush(self) -> None:
-        pass
-
-    def getvalue(self) -> str:
-        return self._buffer.getvalue().decode(self.encoding, "replace")
+from tests.helpers import _RecordingTextStream
 
 
 class CliTests(unittest.TestCase):

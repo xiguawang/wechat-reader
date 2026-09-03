@@ -1,11 +1,50 @@
+import sys
 import unittest
 from unittest.mock import patch
 
-from wechat_reader.mcp_server import handle_message
+from wechat_reader.mcp_server import handle_message, main
 from wechat_reader.models import ArticleResult, BrowserTab, PageStatus
+from tests.helpers import _RecordingTextStream
 
 
 class McpServerTests(unittest.TestCase):
+    def test_main_on_windows_reconfigures_all_stdio_streams(self) -> None:
+        stdin = _RecordingTextStream(input_text="\n")
+        stdout = _RecordingTextStream()
+        stderr = _RecordingTextStream()
+
+        with (
+            patch.object(sys, "platform", "win32"),
+            patch.object(sys, "stdin", stdin),
+            patch.object(sys, "stdout", stdout),
+            patch.object(sys, "stderr", stderr),
+        ):
+            exit_code = main()
+
+        self.assertEqual(exit_code, 0)
+        expected_calls = [{"encoding": "utf-8", "errors": "replace"}]
+        self.assertEqual(stdin.reconfigure_calls, expected_calls)
+        self.assertEqual(stdout.reconfigure_calls, expected_calls)
+        self.assertEqual(stderr.reconfigure_calls, expected_calls)
+
+    def test_main_off_windows_keeps_user_stream_encoding(self) -> None:
+        stdin = _RecordingTextStream(input_text="\n")
+        stdout = _RecordingTextStream(encoding="utf-8")
+        stderr = _RecordingTextStream(encoding="utf-8")
+
+        with (
+            patch.object(sys, "platform", "darwin"),
+            patch.object(sys, "stdin", stdin),
+            patch.object(sys, "stdout", stdout),
+            patch.object(sys, "stderr", stderr),
+        ):
+            exit_code = main()
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stdin.reconfigure_calls, [])
+        self.assertEqual(stdout.reconfigure_calls, [])
+        self.assertEqual(stderr.reconfigure_calls, [])
+
     def test_initialize_returns_tools_capability(self) -> None:
         response = handle_message(
             {

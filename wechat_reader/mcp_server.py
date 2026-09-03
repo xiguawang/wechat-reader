@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 from .browser_bridge import list_wechat_tabs_sync, open_article_sync, read_article_sync
 from .models import ArticleResult, BrowserTab, PageStatus
 from .setup import run_setup_diagnostics
+from .stdio import _configure_stdio_utf8
 
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2025-06-18"
@@ -588,6 +589,7 @@ def handle_message(message: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def main() -> int:
+    _configure_stdio_utf8()
     for line in sys.stdin:
         raw = line.strip()
         if not raw:

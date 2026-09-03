@@ -10,6 +10,7 @@ from typing import Any
 
 from .integrations.openclaw import openclaw_open_sync, openclaw_read_sync
 from .setup import run_setup_diagnostics
+from .stdio import _configure_stdio_utf8
 
 
 DEFAULT_WAIT_FOR_MANUAL_VERIFY = 90
@@ -149,6 +150,7 @@ def _error_payload(message: str) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio_utf8()
     args = build_parser().parse_args(argv)
 
     if args.command == "schema":
